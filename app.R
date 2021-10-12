@@ -7,7 +7,7 @@ shinyApp(
                 c(1:16)),
     selectInput("seed2", "Opponent Seed:",
                 c(1:16)),
-    print("hello"),
+    print("hello world"),
     tableOutput("data"), 
   ),
   server = function(input, output) {
