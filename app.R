@@ -1,5 +1,8 @@
 library(tidyverse)
 library(readr)
+library(shiny)
+library(gt)
+library(gtExtras)
 Big_Dance_CSV <- read_csv("Big_Dance_CSV.csv")
 shinyApp(
   ui = fluidPage(
@@ -18,7 +21,8 @@ shinyApp(
   server = function(input, output) {
     output$data <- renderTable({
       Big_Dance_CSV %>%
-        filter(`Seed` %in% input$seed1 & `Seed_1` %in% input$seed2 | `Seed_1` %in% input$seed1 & `Seed` %in% input$seed2, Year >= input$`start year`) 
+        filter(`Seed` %in% input$seed1 & `Seed_1` %in% input$seed2 | `Seed_1` %in% input$seed1 & `Seed` %in% input$seed2, Year >= input$`start year`) %>% 
+        gt()
     }, rownames = TRUE)
   }
 )
