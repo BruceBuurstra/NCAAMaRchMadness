@@ -23,6 +23,7 @@ shinyApp(
                 max = 2021,
                 value = 1985),
     print("hello world"),
+
     tableOutput("data"), 
   ),
   server = function(input, output) {
