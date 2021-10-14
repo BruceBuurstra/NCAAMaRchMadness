@@ -10,7 +10,13 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
                                  Seed == Seed_1 ~ Seed)) %>% 
   mutate("low seed" = case_when(Seed > Seed_1 ~ Seed,
                                  Seed_1 > Seed ~ Seed_1,
-                                 Seed == Seed_1 ~ Seed))
+                                 Seed == Seed_1 ~ Seed)) %>% 
+  mutate("high score" = case_when(Seed < Seed_1 ~ Score,
+                                  Seed_1 < Seed ~ Score_1
+                                  )) %>% 
+  mutate("low score" = case_when(Seed > Seed_1 ~ Score,
+                                  Seed_1 > Seed ~ Score_1))
+  filter(Seed == Seed_1)
 shinyApp(
   ui = fluidPage(
     selectInput("seed1", "Team Seed:",
