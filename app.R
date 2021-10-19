@@ -34,7 +34,7 @@ shinyApp(
                 c(1:16)),
     selectInput("seed2", "Opponent Seed:",
                 c(1:16)),
-    sliderInput(inputId = "start year",
+    sliderInput(inputId = "year",
                 label = "Start Year:",
                 min = 1985,
                 max = 2021,
@@ -47,9 +47,10 @@ shinyApp(
   server = function(input, output) {
     output$data <- renderTable({
       Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$`start year`) %>%
-        group_by(`high seed`) %>% 
-        gt()
+        filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
+        na.omit() %>% 
+        summarise(`win %` = mean(`high seed win`)) %>%
+        gt() 
     }, rownames = TRUE)
-  output$text <- renderText({as.numeric(input$seed1) + as.numeric(input$seed2)})}
+  output$text <- renderText("The high seed has won this much")}
 )
