@@ -49,8 +49,17 @@ shinyApp(
       Big_Dance_Seeds %>%
         filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
         na.omit() %>% 
-        summarise(`win %` = mean(`high seed win`)) %>%
+        summarise(`# of games` = n(),
+                  `win %` = mean(`high seed win`)) %>%
+        mutate("# of wins" = `win %` * `# of games`) %>% 
+        select(`# of wins`, `# of games`, `win %`) %>% 
         gt() 
-    }, rownames = TRUE)
-  output$text <- renderText("The high seed has won this much")}
+    }, bordered = T, rownames = FALSE)
+    
+  output$text <- renderText(paste("The ", as.numeric(input$seed1), " seed has beaten the ", as.numeric(input$seed2), " seed ", as.numeric(
+                                         Big_Dance_Seeds %>%
+                                         filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
+                                         na.omit() %>% 
+                                         summarise(`win %` = mean(`high seed win`) * 100)), "% of the time since ", input$year, sep = ""))
+  }
 )
