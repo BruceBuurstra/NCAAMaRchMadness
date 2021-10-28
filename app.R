@@ -2,6 +2,7 @@ library(tidyverse)
 library(readr)
 library(shiny)
 library(gt)
+library(gtExtras)
 Big_Dance_CSV <- read_csv("Big_Dance_CSV.csv")
 Big_Dance_Seeds <- Big_Dance_CSV %>% 
   mutate("high seed" = case_when(Seed < Seed_1 ~ Seed,
@@ -55,10 +56,12 @@ shinyApp(
         gt() 
     }, bordered = T, rownames = FALSE)
     
-    output$text <- renderText(paste("The ", as.numeric(input$seed1), " seed has beaten the ", as.numeric(input$seed2), " seed ", as.numeric(
-      Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
-        na.omit() %>% 
-        summarise(`win %` = mean(`high seed win`) * 100)), "% of the time since ", input$year, sep = ""))
+    output$text <- renderText(paste("The ", case_when(input$seed1 < input$seed2 ~ as.numeric(input$seed1),
+                                                      input$seed1 > input$seed2 ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(input$seed1 > input$seed2 ~ as.numeric(input$seed1),
+                                                                                                                                               input$seed1 < input$seed2 ~ as.numeric(input$seed2)), " seed ", as.numeric(
+                                                                                                                                                 Big_Dance_Seeds %>%
+                                                                                                                                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
+                                                                                                                                                   na.omit() %>% 
+                                                                                                                                                   summarise(`win %` = mean(`high seed win`) * 100)), "% of the time since ", input$year, sep = ""))
   }
 )
