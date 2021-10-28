@@ -2,7 +2,6 @@ library(tidyverse)
 library(readr)
 library(shiny)
 library(gt)
-library(gtExtras)
 Big_Dance_CSV <- read_csv("Big_Dance_CSV.csv")
 Big_Dance_Seeds <- Big_Dance_CSV %>% 
   mutate("high seed" = case_when(Seed < Seed_1 ~ Seed,
