@@ -56,7 +56,9 @@ shinyApp(
         gt() 
     }, bordered = T, rownames = FALSE)
     
-  output$text <- renderText(paste("The ", as.numeric(input$seed1), " seed has beaten the ", as.numeric(input$seed2), " seed ", as.numeric(
+  output$text <- renderText(paste("The ", case_when(input$seed1 < input$seed2 ~ as.numeric(input$seed1),
+                                                    input$seed1 > input$seed2 ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(input$seed1 > input$seed2 ~ as.numeric(input$seed1),
+                                                                                                                                             input$seed1 < input$seed2 ~ as.numeric(input$seed2)), " seed ", as.numeric(
                                          Big_Dance_Seeds %>%
                                          filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
                                          na.omit() %>% 
