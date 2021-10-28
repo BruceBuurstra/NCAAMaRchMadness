@@ -27,6 +27,17 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
          "high seed win" = case_when(`high score` > `low score` ~ 1,
                                      `high score` < `low score` ~ 0)) %>% 
   select(-Team, -Team_1, -Score, -Score_1, -Seed, -Seed_1)
+shinyApp(
+  ui = fluidPage(
+    selectInput("seed1", "Team Seed:",
+                c(1:16)),
+    selectInput("seed2", "Opponent Seed:",
+                c(1:16)),
+    sliderInput(inputId = "year",
+                label = "Start Year:",
+                min = 1985,
+                max = 2021,
+                value = 1985),
     print("hello world"),
     
     tableOutput("data"),
