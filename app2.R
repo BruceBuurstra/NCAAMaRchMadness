@@ -65,7 +65,7 @@ ui <- fluidPage(
 
 #Navbar structure for UI
   navbarPage("NCAA March Madness", theme = shinytheme("lumen"),
-             tabPanel("Matchup Finder", fluid = TRUE, icon = icon("globe-americas"),
+             tabPanel("Matchup Finder", fluid = TRUE, icon = icon("basketball-ball"),
                       tags$style(button_color_css),
                       # Sidebar layout with a input and output definitions
                       sidebarLayout(
@@ -157,7 +157,7 @@ ui <- fluidPage(
                           textOutput(outputId = "text"),
                           hr(),
                           br(),
-                          dataTableOutput(outputId = "bigdata"
+                          tableOutput(outputId = "matchups"
                           )
                           ,
                           hr(),
@@ -171,12 +171,12 @@ ui <- fluidPage(
                           #   actionButton(inputId = "FinderClear", label = "Clear Table")))
                           ),
                           br(),
-                          fluidRow((tableOutput(outputId = "matchups")))
+                          fluidRow((dataTableOutput(outputId = "bigdata")))
                           )
                       )
              ),
 
-             tabPanel("Program Comparisons", fluid = TRUE, icon = icon("swimmer"),
+             tabPanel("Program Comparisons", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Program Comparisons"),
                       fluidRow(
                         column(6,
@@ -504,10 +504,19 @@ server <- function(input, output, session) {
     # na.omit() %>% 
     # summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
     # mutate("# of wins" = `win %` * `# of games`) %>% 
-    # select(`# of wins`, `# of games`, `win %`) %>% 
-    #  gt() 
+    # select(`# of wins`, `# of games`, `win %`)
   })
   
+  Matchups_finder <- reactive({
+    req(input$seed1)
+    req(input$seed2)
+    req(input$year)
+    filter(Big_Dance_Seeds, `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year)%>%
+    na.omit() %>% 
+    summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
+    mutate("# of wins" = `win %` * `# of games`) %>% 
+    select(`# of wins`, `# of games`, `win %`)
+  })
   
   # BigTop100_finder <- reactive({
   #   req(input$DivisionFinder)
