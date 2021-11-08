@@ -461,7 +461,7 @@ server <- function(input, output, session) {
   #Data Table
   
   output$matchups <- renderTable(Big_Dance_Seeds %>%
-                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2, 
+                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
                                           `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
                                            Year >= input$year)%>%
                                    summarise(`# of games` = n(),
