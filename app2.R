@@ -500,11 +500,6 @@ server <- function(input, output, session) {
     req(input$seed1)
     req(input$seed2)
     req(input$year)
-    filter(Big_Dance_Seeds, `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year)
-    # na.omit() %>% 
-    # summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
-    # mutate("# of wins" = `win %` * `# of games`) %>% 
-    # select(`# of wins`, `# of games`, `win %`)
   })
   
   Matchups_finder <- reactive({
