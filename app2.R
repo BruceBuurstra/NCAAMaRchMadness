@@ -121,10 +121,10 @@ ui <- fluidPage(
                           # actionButton(inputId = "EnterTimes", label = "Enter Times"),
                           hr(),
                           sliderInput(inputId = "year",
-                                      label = "Select Start Year",
+                                      label = "Select Year Range",
                                       min = 1985,
                                       max = 2021,
-                                      value = 1985,
+                                      value = c(1985, 2021),
                                       width = "220px"),
                           #helpText("For example: Find 1st fastest through 6th fastest athletes on a given team"),
                           hr(),
@@ -463,22 +463,23 @@ server <- function(input, output, session) {
   output$matchups <- renderTable(Big_Dance_Seeds %>%
                                    filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
                                           `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
-                                           Year >= input$year)%>%
+                                           Year >= input$year[1],
+                                           Year <= input$year[2])%>%
                                    summarise(`# of games` = n(),
                                             `win %` = mean(`high seed win`)) %>%
                                    mutate("# of wins" = `win %` * `# of games`) %>% 
                                    select(`# of wins`, `# of games`, `win %`))
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
-                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year))
+                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]))
   
   output$text <- renderText(paste("The ", case_when(input$seed1 < input$seed2 ~ as.numeric(input$seed1),
                                                     input$seed1 > input$seed2 ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(input$seed1 > input$seed2 ~ as.numeric(input$seed1),
                                                                                                                                              input$seed1 < input$seed2 ~ as.numeric(input$seed2)), " seed ", as.numeric(
                                                                                                                                                Big_Dance_Seeds %>%
-                                                                                                                                                 filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
+                                                                                                                                                 filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
                                                                                                                                                  na.omit() %>% 
-                                                                                                                                                 summarise(`win %` = mean(`high seed win`) * 100)), "% of the time since ", input$year, sep = ""))
+                                                                                                                                                 summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = ""))
   
   #Program Finder
 
