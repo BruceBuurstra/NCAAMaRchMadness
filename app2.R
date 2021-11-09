@@ -176,7 +176,7 @@ ui <- fluidPage(
                       )
              ),
 
-             tabPanel("Program Comparisons", fluid = TRUE, icon = icon("bars"),
+             tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Program Comparisons"),
                       fluidRow(
                         column(6,
