@@ -502,9 +502,6 @@ server <- function(input, output, session) {
     req(input$year)
   })
   
-=======
-  })
-  
   Matchups_finder <- reactive({
     req(input$seed1)
     req(input$seed2)
