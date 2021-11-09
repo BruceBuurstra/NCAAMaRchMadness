@@ -65,11 +65,7 @@ ui <- fluidPage(
 
 #Navbar structure for UI
   navbarPage("NCAA March Madness", theme = shinytheme("lumen"),
-<<<<<<< HEAD
-             tabPanel("Matchup Finder", fluid = TRUE, icon = icon("globe-americas"),
-=======
              tabPanel("Matchup Finder", fluid = TRUE, icon = icon("basketball-ball"),
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
                       tags$style(button_color_css),
                       # Sidebar layout with a input and output definitions
                       sidebarLayout(
@@ -161,11 +157,7 @@ ui <- fluidPage(
                           textOutput(outputId = "text"),
                           hr(),
                           br(),
-<<<<<<< HEAD
-                          dataTableOutput(outputId = "bigdata"
-=======
                           tableOutput(outputId = "matchups"
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
                           )
                           ,
                           hr(),
@@ -179,20 +171,12 @@ ui <- fluidPage(
                           #   actionButton(inputId = "FinderClear", label = "Clear Table")))
                           ),
                           br(),
-<<<<<<< HEAD
-                          fluidRow((tableOutput(outputId = "matchups")))
-=======
                           fluidRow((dataTableOutput(outputId = "bigdata")))
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
                           )
                       )
              ),
 
-<<<<<<< HEAD
-             tabPanel("Program Comparisons", fluid = TRUE, icon = icon("swimmer"),
-=======
-             tabPanel("Program Comparisons", fluid = TRUE, icon = icon("bars"),
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
+             tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Program Comparisons"),
                       fluidRow(
                         column(6,
@@ -237,7 +221,7 @@ ui <- fluidPage(
                       )
              ),
 
-  navbarMenu("Divisions Comparisons", icon = icon("chart-bar"),
+  navbarMenu("Round Comparisons", icon = icon("chart-bar"),
              tabPanel("Times Comparision Between Divisions", fluid = TRUE,
                       tags$style(button_color_css),
                       titlePanel("Times Comparision Between Divisions"),
@@ -477,11 +461,7 @@ server <- function(input, output, session) {
   #Data Table
   
   output$matchups <- renderTable(Big_Dance_Seeds %>%
-<<<<<<< HEAD
-                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2, 
-=======
                                    filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
                                           `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
                                            Year >= input$year)%>%
                                    summarise(`# of games` = n(),
@@ -499,11 +479,7 @@ server <- function(input, output, session) {
                                                                                                                                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
                                                                                                                                                  na.omit() %>% 
                                                                                                                                                  summarise(`win %` = mean(`high seed win`) * 100)), "% of the time since ", input$year, sep = ""))
-<<<<<<< HEAD
-                                                                                                                                             
-=======
   
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
   #Program Finder
 
   # TimeFinderDF <- reactive({
@@ -524,13 +500,6 @@ server <- function(input, output, session) {
     req(input$seed1)
     req(input$seed2)
     req(input$year)
-<<<<<<< HEAD
-    filter(Big_Dance_Seeds, `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year)
-    # na.omit() %>% 
-    # summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
-    # mutate("# of wins" = `win %` * `# of games`) %>% 
-    # select(`# of wins`, `# of games`, `win %`) %>% 
-    #  gt() 
   })
   
 =======
@@ -546,7 +515,6 @@ server <- function(input, output, session) {
     mutate("# of wins" = `win %` * `# of games`) %>% 
     select(`# of wins`, `# of games`, `win %`)
   })
->>>>>>> 78cbf82a28580fc97605e5dc1ad6e2731dc7b258
   
   # BigTop100_finder <- reactive({
   #   req(input$DivisionFinder)
