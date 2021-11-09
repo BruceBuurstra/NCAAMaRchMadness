@@ -1,5 +1,5 @@
 big2 <- Big_Dance_Seeds %>%
-  filter(`high seed` == 5, `low seed` == 12)%>%
+  filter(`high seed` == 1, `low seed` == 1)%>%
   mutate(Difference = abs(`high seed score` - `low seed score`))%>%
   group_by(`high seed win`)%>%
   summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
