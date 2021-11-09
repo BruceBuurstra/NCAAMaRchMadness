@@ -157,9 +157,6 @@ ui <- fluidPage(
                           textOutput(outputId = "text"),
                           hr(),
                           br(),
-                          textOutput(outputId = "text2"),
-                          hr(),
-                          br(),
                           tableOutput(outputId = "matchups"
                           )
                           ,
@@ -464,7 +461,7 @@ server <- function(input, output, session) {
   #Data Table
   
   output$matchups <- renderTable(Big_Dance_Seeds %>%
-                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2, 
+                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
                                           `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
                                            Year >= input$year)%>%
                                    summarise(`# of games` = n(),
@@ -482,9 +479,7 @@ server <- function(input, output, session) {
                                                                                                                                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year) %>%
                                                                                                                                                  na.omit() %>% 
                                                                                                                                                  summarise(`win %` = mean(`high seed win`) * 100)), "% of the time since ", input$year, sep = ""))
-   
-  output$text2 <- renderText(case_when(input$seed1 == input$seed2 ~ "These are the same seed",
-                                      TRUE ~ "These are different seeds"))                                                                                                                                          
+  
   #Program Finder
 
   # TimeFinderDF <- reactive({
