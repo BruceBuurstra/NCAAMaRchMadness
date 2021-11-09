@@ -176,7 +176,7 @@ ui <- fluidPage(
                       )
              ),
 
-             tabPanel("Program Comparisons", fluid = TRUE, icon = icon("bars"),
+             tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Program Comparisons"),
                       fluidRow(
                         column(6,
@@ -221,7 +221,7 @@ ui <- fluidPage(
                       )
              ),
 
-  navbarMenu("Divisions Comparisons", icon = icon("chart-bar"),
+  navbarMenu("Round Comparisons", icon = icon("chart-bar"),
              tabPanel("Times Comparision Between Divisions", fluid = TRUE,
                       tags$style(button_color_css),
                       titlePanel("Times Comparision Between Divisions"),

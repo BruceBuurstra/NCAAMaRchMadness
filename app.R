@@ -40,8 +40,8 @@ shinyApp(
                 value = 1985),
     print("hello world"),
     
-    tableOutput("data"),
-    textOutput("text"),
+    tableOutput(outputId = "data"),
+    #textOutput("text"),
   ),
   server = function(input, output) {
     output$data <- renderTable({
