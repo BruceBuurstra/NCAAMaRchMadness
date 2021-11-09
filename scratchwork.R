@@ -1,0 +1,30 @@
+big2 <- Big_Dance_Seeds %>%
+  filter(`high seed` == 5, `low seed` == 12)%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+  group_by(`high seed win`)%>%
+  summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
+View(big2)
+Big_Dance_Seeds %>%
+  filter(`high seed` == 5, `low seed` == 12)%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+  ggplot(aes(Difference))+
+  geom_histogram()+
+  facet_wrap(~ `high seed win`, ncol = 1)
+
+big3 <- Big_Dance_Seeds %>%
+  filter(`high seed` == 1, `low seed` == 1)%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+  summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference))
+View(big3)
+Big_Dance_Seeds %>%
+  filter(`high seed` == 1, `low seed` == 1)%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+  ggplot(aes(Difference))+
+  geom_histogram()
+
+big4 <- Big_Dance_Seeds %>%
+  filter(`high seed` == 1, `low seed` == 1)%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))
+View(big4)
+big4 %>% ggplot(aes(Difference))+
+  geom_boxplot()
