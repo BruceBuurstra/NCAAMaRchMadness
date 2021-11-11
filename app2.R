@@ -171,6 +171,9 @@ ui <- fluidPage(
                           #   actionButton(inputId = "FinderClear", label = "Clear Table")))
                           ),
                           br(),
+                          fluidRow((dataTableOutput(outputId = "data2"))),
+                          hr(),
+                          br(),
                           fluidRow((dataTableOutput(outputId = "bigdata")))
                           )
                       )
@@ -481,6 +484,28 @@ server <- function(input, output, session) {
                                                                                                                                                  na.omit() %>% 
                                                                                                                                                  summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = ""))
   
+  output$data2 <- renderDataTable({
+    if (input$seed1 == input$seed2){
+      DT::datatable(data = Big_Dance_Seeds %>%
+                      filter(
+                      `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
+                      `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
+                    Year >= input$year[1],
+                    Year <= input$year[2])%>%
+                      mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+                      summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
+    }
+    else{
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
+                 `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
+               Year >= input$year[1],
+               Year <= input$year[2])%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        group_by(`high seed win`)%>%
+        summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
+    }
+  })
   #Program Finder
 
   # TimeFinderDF <- reactive({
