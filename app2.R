@@ -175,9 +175,9 @@ ui <- fluidPage(
                           )
                       )
              ),
-
+            # Team Statistics Panel
              tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
-                      titlePanel("Program Comparisons"),
+                      titlePanel("Team Statistics"),
                       fluidRow(
                         column(6,
                                selectizeInput(inputId = "SchoolSelectA",
@@ -187,28 +187,23 @@ ui <- fluidPage(
                                               options = list(maxItems = 4, placeholder = 'Enter school name',
                                                              onInitialize = I('function() { this.setValue(""); }'))
                                ),
-                               selectInput(inputId = "SchoolCompRace",
-                                           label = "Select Event",
-                                           choices = "yes",
-                                           selected = "50 Free"),
-                               helpText("Select school and event to create plots")
                         ),
                         column(6,
-                               checkboxGroupInput(inputId = "SchoolCompGender",
-                                                  label = "Select Gender(s):",
-                                                  choices = c("Male" = "M", "Female" = "F"),
-                                                  selected = "M"),
-                               radioButtons(inputId = "TuitionType",
-                                            label = "Use In-State Tution?",
-                                            choices = c("Yes", "No"),
-                                            selected = "Yes"),
-                               helpText("Note: In-state tuition will only apply to public schools")
+                               checkboxGroupInput(inputId = "RoundSelect",
+                                                  label = "Select Round:",
+                                                  choices = c("Round of 64" = 1,
+                                                              "Round of 32" = 2,
+                                                              "Sweet Sixteen" = 3,
+                                                              "Elite Eight" = 4,
+                                                              "Final Four" = 5,
+                                                              "Championship" = 6),
+                                                  selected = 1)
                         )
                       ),
                       hr(),
                       fluidRow(
                         column(6,
-                               withSpinner(plotOutput(outputId = "SchoolCompPlotEvent"
+                               withSpinner(plotOutput(outputId = "TeamData"
                                           # brush = "brush_SchoolComp"
                                )),
                                br(),
@@ -479,7 +474,7 @@ server <- function(input, output, session) {
                                                                                                                                                Big_Dance_Seeds %>%
                                                                                                                                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
                                                                                                                                                  na.omit() %>% 
-                                                                                                                                                 summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = ""))
+                                                                                                                                          summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = ""))
   
   #Program Finder
 
