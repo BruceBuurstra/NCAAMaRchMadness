@@ -478,9 +478,9 @@ server <- function(input, output, session) {
       
   }
   else{
-    paste("The ", case_when(input$seed1 < input$seed2 ~ as.numeric(input$seed1),
-                            input$seed1 > input$seed2 ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(input$seed1 > input$seed2 ~ as.numeric(input$seed1),
-                                                                                                                     input$seed1 < input$seed2 ~ as.numeric(input$seed2)), " seed ", as.numeric(
+    paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                            as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                                                                                                                     as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed ", as.numeric(
                                                                                                                        Big_Dance_Seeds %>%
                                                                                                                          filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
                                                                                                                          na.omit() %>% 
