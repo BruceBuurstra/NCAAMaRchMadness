@@ -28,3 +28,24 @@ big4 <- Big_Dance_Seeds %>%
 View(big4)
 big4 %>% ggplot(aes(Difference))+
   geom_boxplot()
+
+
+
+
+scratch3 <- Big_Dance_Seeds %>%
+  group_by(`high seed`, `low seed`)%>%
+  summarise(`win %` = case_when(`high seed`==`low seed` ~.5,
+                      TRUE ~ mean(`high seed win`))) %>%
+  select(`high seed`, `low seed`, `win %`)
+
+scratch3 <- Big_Dance_Seeds %>%
+  na.omit()%>%
+  group_by(`high seed`, `low seed`)%>%
+  summarise(`win %` = mean(`high seed win`)) %>%
+  select(`high seed`, `low seed`,`win %`)%>%
+  mutate(prob = case_when(`high seed`==`low seed` ~.5,
+                          TRUE ~ `win %`))%>%
+  select(`high seed`, `low seed`,prob)
+
+win_probs <- scratch3%>%
+  pull(prob)
