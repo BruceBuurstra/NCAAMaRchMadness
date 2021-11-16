@@ -184,10 +184,10 @@ ui <- fluidPage(
                       fluidRow(
                         column(6,
                                selectizeInput(inputId = "SchoolSelectA",
-                                              label = "Select Schools (Max 4)",
-                                              choices = "yes",
+                                              label = "Select Schools (Max 2)",
+                                              choices = sort(c(Big_Dance_Seeds$`high seed team`, Big_Dance_Seeds$`low seed team`)),
                                               multiple = TRUE,
-                                              options = list(maxItems = 4, placeholder = 'Enter school name',
+                                              options = list(maxItems = 2, placeholder = 'Enter school name',
                                                              onInitialize = I('function() { this.setValue(""); }'))
                                ),
                         ),
@@ -210,7 +210,8 @@ ui <- fluidPage(
                                           # brush = "brush_SchoolComp"
                                )),
                                br(),
-                               dataTableOutput(outputId = "SchoolCompDT")
+                               dataTableOutput(outputId = "SchoolHistory1"),
+                               dataTableOutput("SchoolHistory2")
                         ),
                         column(6,
                                dataTableOutput(outputId = "SchoolCompStats"),
@@ -471,14 +472,21 @@ server <- function(input, output, session) {
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]))
   
-  output$text <- renderText(paste("The ", case_when(input$seed1 < input$seed2 ~ as.numeric(input$seed1),
-                                                    input$seed1 > input$seed2 ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(input$seed1 > input$seed2 ~ as.numeric(input$seed1),
-                                                                                                                                             input$seed1 < input$seed2 ~ as.numeric(input$seed2)), " seed ", as.numeric(
-                                                                                                                                               Big_Dance_Seeds %>%
-                                                                                                                                                 filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
-                                                                                                                                                 na.omit() %>% 
-                                                                                                                                          summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = ""))
-  
+  output$text <- renderText({
+    if (input$seed1 == input$seed2){
+      "These teams are the same seed."
+      
+  }
+  else{
+    paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                            as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                                                                                                                     as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed ", as.numeric(
+                                                                                                                       Big_Dance_Seeds %>%
+                                                                                                                         filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
+                                                                                                                         na.omit() %>% 
+                                                                                                                         summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
+  }
+  })
   output$data2 <- renderDataTable({
     if (input$seed1 == input$seed2){
       DT::datatable(data = Big_Dance_Seeds %>%
@@ -500,6 +508,13 @@ server <- function(input, output, session) {
         group_by(`high seed win`)%>%
         summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
     }
+  })
+  
+  #tables for team comparisons
+  output$SchoolHistory1 <- renderTable({
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1]) %>% 
+      mutate("wins" = 0, "losses" = 0) %>% 
+      select(`high seed team`, wins, losses)
   })
   #Program Finder
 
