@@ -7,6 +7,7 @@ library(tidyr)
 library(shinycssloaders)
 library(shinythemes)
 library(SwimmeR)
+library(gt)
 
 #Import Data
 Big_Dance_CSV <- read.csv("Big_Dance_CSV.csv")
@@ -206,12 +207,8 @@ ui <- fluidPage(
                       hr(),
                       fluidRow(
                         column(6,
-                               withSpinner(plotOutput(outputId = "TeamData"
-                                          # brush = "brush_SchoolComp"
-                               )),
-                               br(),
-                               dataTableOutput(outputId = "SchoolHistory1"),
-                               dataTableOutput("SchoolHistory2")
+                               tableOutput(outputId = "SchoolHistory1"),
+                               tableOutput("SchoolHistory2")
                         ),
                         column(6,
                                dataTableOutput(outputId = "SchoolCompStats"),
@@ -512,9 +509,31 @@ server <- function(input, output, session) {
   
   #tables for team comparisons
   output$SchoolHistory1 <- renderTable({
-    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1]) %>% 
-      mutate("wins" = 0, "losses" = 0) %>% 
-      select(`high seed team`, wins, losses)
+    Big_Dance_Seeds %>% filter(`high seed team` == req(input$SchoolSelectA[1]) | `low seed team` == req(input$SchoolSelectA[1])) %>% 
+      mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
+                               (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = "")
+                ) %>% 
+      mutate("Team" = input$SchoolSelectA[1]) %>% 
+      select(Team, `Games Played`, Record)
+  })
+  
+  output$SchoolHistory2 <- renderTable({
+    Big_Dance_Seeds %>% filter(`high seed team` == req(input$SchoolSelectA[2]) | `low seed team` == req(input$SchoolSelectA[2])) %>% 
+      mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` > `high seed score`) ~ 1,
+                               (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = "")
+      ) %>% 
+      mutate("Team" = input$SchoolSelectA[2]) %>% 
+      select(Team, `Games Played`, Record)
   })
   #Program Finder
 
@@ -532,6 +551,9 @@ server <- function(input, output, session) {
   # })
   # 
   
+  RecordPlot <- reactive({
+    req(input$SchoolSelectA)
+  })
   BigDanceSeeds_finder <- reactive({
     req(input$seed1)
     req(input$seed2)
