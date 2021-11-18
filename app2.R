@@ -41,15 +41,6 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
                                      `high seed score` < `low seed score` ~ 0)) %>% 
   select(-Team, -Team_1, -Score, -Score_1, -Seed, -Seed_1)
 
-#Events <- ordered(BigTop100$Event, levels = c("50 Free", "100 Free", "200 Free", "500 Free", "1000 Free", "1650 Free", "100 Fly", "200 Fly", "100 Back", "200 Back", "100 Breast", "200 Breast", "100 IM", "200 IM", "400 IM", "200 Free Relay", "400 Free Relay", "800 Free Relay", "200 Medlay Relay", "400 Medlay Relay"))
-
-# mmss_format <- function(x, ...) {
-#   sec <- x%%60
-#   min <- x%/%60
-#   sec <- base::sprintf("%05.2f", sec)
-#   ifelse(min == 0, paste(sec),
-#          paste(min, sec, sep = ":"))
-# }
 
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
@@ -73,24 +64,12 @@ ui <- fluidPage(
                         sidebarPanel(
 
                           titlePanel("Desired Matchup"),
-                          #shinythemes::themeSelector(),
                           fluidRow(column(8,
-
-                                          # Select which Gender(s) to plot
-                                          # checkboxGroupInput(inputId = "GenderFinder",
-                                          #                    label = "Select Gender(s):",
-                                          #                    choices = c("Male" = "M", "Female" = "F"),
-                                          #                    selected = "M"),
                                           selectInput(inputId = "seed1",
                                                       label = "Team Seed:",
                                                       choices = c(1:16),
                                                       selected = 1),
                                           hr(),
-                                          # Select which Division(s) to plot
-                                          # checkboxGroupInput(inputId = "DivisionFinder",
-                                          #                    label = "Select Division(s):",
-                                          #                    choices = c("DI", "DII", "DIII"),
-                                          #                    selected = "DI")
                                           selectInput(inputId = "seed2", 
                                                       label = "Opponent Seed:",
                                                       choices = c(1:16), 
@@ -98,28 +77,6 @@ ui <- fluidPage(
                                           
                           ),
                           ),
-                          # Select Event
-                          # selectInput(inputId = "EventFinder",
-                          #             label = "Select Event",
-                          #             choices = "yes",
-                          #             selected = "50 Free",
-                          #             width = "220px"
-                          #             ),
-                          # # Set Time Range
-                          # fluidRow(column(5,
-                          #                 textInput(inputId = "TimeFinderMin",
-                          #                           label = "From:",
-                          #                           value = "19.00",
-                          #                           width = "100px")
-                          # ),
-                          # column(5, ofset = 3,
-                          #        textInput(inputId = "TimeFinderMax",
-                          #                  label = "To:",
-                          #                  value = "22.00",
-                          #                  width = "100px")
-                          # )),
-                          # helpText("Format example: 1:39.99"),
-                          # actionButton(inputId = "EnterTimes", label = "Enter Times"),
                           hr(),
                           sliderInput(inputId = "year",
                                       label = "Select Year Range",
@@ -127,53 +84,21 @@ ui <- fluidPage(
                                       max = 2021,
                                       value = c(1985, 2021),
                                       width = "220px"),
-                          #helpText("For example: Find 1st fastest through 6th fastest athletes on a given team"),
                           hr(),
-                          #titlePanel("School Characteristics"),
-                          # Select which School Type to plot
-                          # checkboxGroupInput(inputId = "School_TypeFinder",
-                          #                    label = "Select School Type(s):",
-                          #                    choices = c("National University", "Regional University", "National Liberal Arts College", "Regional College"),
-                          #                    selected = c("National University", "Regional University", "National Liberal Arts College", "Regional College")),
-                          # 
-                          # sliderInput(inputId = "School_RankFinder",
-                          #             label = "School Rank",
-                          #             min = 1,
-                          #             max = 250,
-                          #             value = c(1,250),
-                          #             width = "220px")
-                        ),
+                          ),
                         mainPanel(
                           fluidRow(
                             column(12,
-                                   
-                                  # tableOutput(outputId = "table")
-
-                                   # radioButtons(inputId = "show_NamesFinder",
-                                   #              label = "Display:",
-                                   #              choices = c("School Names", "City Names", "Neither"),
-                                   #               selected = "School Names")
-                            )),
+                          )),
                           hr(),
                           textOutput(outputId = "text"),
                           hr(),
                           br(),
-                          tableOutput(outputId = "matchups"
-                          )
-                          ,
+                          tableOutput(outputId = "matchups"),
                           hr(),
                           fluidRow(column(7,
-                          #                 helpText("Tip: Click locations to populate table below with information on schools in a specific area")
-                          #                 #actionButton(inputId = "draw", label = "Input Event and Times")
-                          # 
                           ),
-                          # column(width = 2, offset = 2, conditionalPanel(
-                          #   condition = "output.schoolstableFinder",
-                          #   actionButton(inputId = "FinderClear", label = "Clear Table")))
                           ),
-                          br(),
-                          fluidRow((dataTableOutput(outputId = "data2"))),
-                          hr(),
                           br(),
                           fluidRow((dataTableOutput(outputId = "bigdata")))
                           )
@@ -218,44 +143,48 @@ ui <- fluidPage(
                       )
              ),
 
-  navbarMenu("Round Comparisons", icon = icon("chart-bar"),
-             tabPanel("Times Comparision Between Divisions", fluid = TRUE,
+  navbarMenu("Spread Comparisons", icon = icon("chart-bar"),
+             tabPanel("Spread Comparision Between Seeds", fluid = TRUE,
                       tags$style(button_color_css),
-                      titlePanel("Times Comparision Between Divisions"),
-                      fluidRow(
-                        column(4,
-                               selectInput(inputId = "DivCompRaceA",
-                                           label = "Select Event",
-                                           choices = "yes",
-                                           selected = "50 Free")),
-                        column(4,
-                               sliderInput(inputId = "DivCompRankA",
-                                           label = "Top Times Range:",
-                                           min = 1, max = 3500,
-                                           value = c(1,250))),
-                        column(4,
-                               checkboxGroupInput(inputId = "DivCompGenderA",
-                                                  label = "Select Gender(s):",
-                                                  choices = c("Male" = "M", "Female" = "F"),
-                                                  selected = "M"))),
-                      hr(),
-                               helpText("Tip: Highlight points to populate table"),
-                      br(),
-                      fluidRow(
-                        column(6,
-                               withSpinner(plotOutput(outputId = "DivCompPlotA",
-                                                      brush = "brush_plotDiv"
-                                                      #click = "click_plotDiv"
-                                                      ))),
-                      # hr(),
-                      # conditionalPanel(
-                      #   condition = "output.DivCompTable",
-                      # column(1.5, offset = 10.5, actionButton(inputId = "DivCompClear", label = "Clear Table"))
-                      # ),
-                      #br(),
-                      column(6,
-                      dataTableOutput(outputId = "DivCompTable")
-                        ))),
+                      sidebarLayout(
+                        sidebarPanel(
+                          
+                          titlePanel("Desired Matchup"),
+                          fluidRow(column(8,
+                                          selectInput(inputId = "seed1_2",
+                                                      label = "Team Seed:",
+                                                      choices = c(1:16),
+                                                      selected = 1),
+                                          hr(),
+                                          selectInput(inputId = "seed2_2", 
+                                                      label = "Opponent Seed:",
+                                                      choices = c(1:16), 
+                                                      selected = 1)
+                                          
+                          ),
+                          ),
+                          hr(),
+                          sliderInput(inputId = "year_2",
+                                      label = "Select Year Range",
+                                      min = 1985,
+                                      max = 2021,
+                                      value = c(1985, 2021),
+                                      width = "220px"),
+                          hr(),
+                        ),
+                        mainPanel(
+                          fluidRow(
+                            column(12,
+                            )),
+                          hr(),
+                          br(),
+                          fluidRow((dataTableOutput(outputId = "data2"))),
+                          hr(),
+                          br(),
+                          fluidRow((plotOutput(outputId = "spreads_histogram")))
+                        )
+                      )
+             ),
              tabPanel("NCAA Regulation Differences By Division", fluid = TRUE,
 
                         column(6,
@@ -486,11 +415,11 @@ server <- function(input, output, session) {
   }
   })
   output$data2 <- renderDataTable({
-    if (input$seed1 == input$seed2){
+    if (input$seed1_2 == input$seed2_2){
       DT::datatable(data = Big_Dance_Seeds %>%
                       filter(
-                      `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
-                      `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
+                      `low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                      `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
                     Year >= input$year[1],
                     Year <= input$year[2])%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
@@ -498,13 +427,37 @@ server <- function(input, output, session) {
     }
     else{
       Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
-                 `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
-               Year >= input$year[1],
-               Year <= input$year[2])%>%
+        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+               Year >= input$year_2[1],
+               Year <= input$year_2[2])%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         group_by(`high seed win`)%>%
         summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
+    }
+  })
+  
+  output$spreads_histogram <- renderPlot({
+    if (input$seed1_2 == input$seed2_2){
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+               Year >= input$year_2[1],
+               Year <= input$year_2[2])%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        ggplot(aes(Difference))+
+        geom_histogram()
+    }
+    else{
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+               Year >= input$year_2[1],
+               Year <= input$year_2[2])%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        ggplot(aes(Difference))+
+        geom_histogram()+
+        facet_wrap(~ `high seed win`, ncol = 1)
     }
   })
   
