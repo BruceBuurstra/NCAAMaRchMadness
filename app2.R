@@ -139,7 +139,7 @@ ui <- fluidPage(
                                dataTableOutput(outputId = "SchoolCompStats"),
                               # helpText("For more information on school types and US News rankings please see More > About > School Types & Rankings")
                         )
-                      )
+                    )  
              ),
 
   navbarMenu("Spread Comparisons", icon = icon("chart-bar"),
@@ -180,11 +180,14 @@ ui <- fluidPage(
                           fluidRow((dataTableOutput(outputId = "data2"))),
                           hr(),
                           br(),
-                          fluidRow((plotOutput(outputId = "spreads_histogram")))
+                          fluidRow((plotOutput(outputId = "spreads_histogram", brush = "plot_hover"))),
+                          hr(),
+                          br(),
+                          fluidRow((dataTableOutput(outputId = "moviestable")))
                         )
                       )
              ),
-             tabPanel("NCAA Regulation Differences By Division", fluid = TRUE,
+             tabPanel("Spread Comparison Between Conferences", fluid = TRUE,
 
                         column(6,
                                br(),
@@ -210,7 +213,7 @@ ui <- fluidPage(
                                    href = "https://www.businessinsider.com/college-student-athletes-spend-40-hours-a-week-practicing-2015-1"))
                                ))),
 
-             tabPanel("Division I Swimming Makeup", fluid = TRUE,
+             tabPanel("Spread Comparisons Between Seeds/Conferences", fluid = TRUE,
                       titlePanel("Division I School Types"),
                       sidebarLayout(
                         sidebarPanel(
@@ -243,7 +246,7 @@ ui <- fluidPage(
                         )
                       )
              ),
-             tabPanel("Division II Swimming Makeup", fluid = TRUE,
+             tabPanel("Spread Comparison by Seeds per Round", fluid = TRUE,
                       titlePanel("Division II School Types"),
                       sidebarLayout(
                         sidebarPanel(
@@ -275,7 +278,7 @@ ui <- fluidPage(
                         )
                       )
              ),
-             tabPanel("Division III Swimming Makeup", fluid = TRUE,
+             tabPanel("Spread Comparisons by Seeds/Conferences per Round", fluid = TRUE,
                       titlePanel("Division III School Types"),
                       sidebarLayout(
                         sidebarPanel(
@@ -458,6 +461,16 @@ server <- function(input, output, session) {
         geom_histogram()+
         facet_wrap(~ `high seed win`, ncol = 1)
     }
+  })
+  
+  output$moviestable <- renderDataTable({
+    brushedPoints(Big_Dance_Seeds %>%
+                    filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                             `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+                           Year >= input$year_2[1],
+                           Year <= input$year_2[2])%>%
+                    mutate(Difference = abs(`high seed score` - `low seed score`)), brush = input$plot_hover) %>%
+      select(`high seed team`, `low seed team`, Difference)
   })
   
   #tables for team comparisons
