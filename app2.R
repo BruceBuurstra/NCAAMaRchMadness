@@ -125,8 +125,7 @@ ui <- fluidPage(
                                                               "Sweet Sixteen" = 3,
                                                               "Elite Eight" = 4,
                                                               "Final Four" = 5,
-                                                              "Championship" = 6),
-                                                  selected = 1)
+                                                              "Championship" = 6))
                         )
                       ),
                       hr(),
@@ -138,7 +137,7 @@ ui <- fluidPage(
                         ),
                         column(6,
                                dataTableOutput(outputId = "SchoolCompStats"),
-                               helpText("For more information on school types and US News rankings please see More > About > School Types & Rankings")
+                              # helpText("For more information on school types and US News rankings please see More > About > School Types & Rankings")
                         )
                       )
              ),
@@ -465,48 +464,61 @@ server <- function(input, output, session) {
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
     Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1]) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
-                               (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0)) %>% 
+                               (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0),
+             "Championship" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 6) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 6) ~ 1,
+                                        TRUE ~ 0),
+             "Champion" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 5) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 5) ~ 1,
+                                    TRUE ~ 0),
+             "Final Four" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 4) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 4) ~ 1,
+                                      TRUE ~ 0),
+             "PF" = case_when(`high seed team` == input$SchoolSelectA[1] ~ `high seed score`,
+                              `low seed team` == input$SchoolSelectA[1] ~ `low seed score`),
+             "PA" = case_when(`high seed team` == input$SchoolSelectA[1] ~ `low seed score`,
+                              `low seed team` == input$SchoolSelectA[1] ~ `high seed score`)) %>% 
       summarise("Games Played" = n(),
                 "win%" = mean(Win),
                 "# of wins" = `Games Played` * `win%`,
                 "# of losses" = `Games Played` - `# of wins`,
-                "Record" = paste(`# of wins`, "-", `# of losses`, sep = "")
-                ) %>% 
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                "Championships Won" = mean(Championship) * n(),
+                "Championships Made" = mean(Champion) * n(),
+                "Final Fours" = mean(`Final Four`) * n(),
+                "Average Points Scored" = mean(PF),
+                "Average Points Allowed" = mean(PA)) %>% 
       mutate("Team" = input$SchoolSelectA[1]) %>% 
-      select(Team, `Games Played`, Record) %>% 
+      select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt()
   })
-  
   output$SchoolHistory2 <- renderTable({req(input$SchoolSelectA[2])
     Big_Dance_Seeds %>% filter(`high seed team` == req(input$SchoolSelectA[2]) | `low seed team` == req(input$SchoolSelectA[2])) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` > `high seed score`) ~ 1,
-                               (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0)) %>% 
+                               (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0),
+             "Championship" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 6) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 6) ~ 1,
+                                        TRUE ~ 0),
+             "Champion" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 5) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 5) ~ 1,
+                                    TRUE ~ 0),
+             "Final Four" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 4) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 4) ~ 1,
+                                      TRUE ~ 0),
+             "PF" = case_when(`high seed team` == input$SchoolSelectA[2] ~ `high seed score`,
+                              `low seed team` == input$SchoolSelectA[2] ~ `low seed score`),
+             "PA" = case_when(`high seed team` == input$SchoolSelectA[2] ~ `low seed score`,
+                              `low seed team` == input$SchoolSelectA[2] ~ `high seed score`)) %>% 
       summarise("Games Played" = n(),
                 "win%" = mean(Win),
                 "# of wins" = `Games Played` * `win%`,
                 "# of losses" = `Games Played` - `# of wins`,
-                "Record" = paste(`# of wins`, "-", `# of losses`, sep = "")
-      ) %>% 
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                "Championships Won" = mean(Championship) * n(),
+                "Championships Made" = mean(Champion) * n(),
+                "Final Fours" = mean(`Final Four`) * n(),
+                "Average Points Scored" = mean(PF),
+                "Average Points Allowed" = mean(PA)) %>% 
       mutate("Team" = input$SchoolSelectA[2]) %>% 
-      select(Team, `Games Played`, Record) %>% 
+      select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt() %>% 
       tab_header(title = md("Historical Record"))
   })
   #Program Finder
-
-  # TimeFinderDF <- reactive({
-  #   req(input$TimeFinderMin)
-  #   TimeFinderDF <- as.data.frame(c(input$TimeFinderMin, input$TimeFinderMax))
-  #   names(TimeFinderDF)[1] <- "UserTimes"
-  #   TimeFinderDF$UserTimes <- as.character(TimeFinderDF$UserTimes)
-  #   TimeFinderDF <- tidyr::separate(TimeFinderDF, col = UserTimes, c("min", "sec"), sep = ":", remove = FALSE, extra = "drop", fill = "left")
-  # TimeFinderDF[is.na(TimeFinderDF)] <- 0
-  # TimeFinderDF$sec <- as.numeric(TimeFinderDF$sec)
-  # TimeFinderDF$min <- as.numeric(TimeFinderDF$min)
-  # TimeFinderDF <- TimeFinderDF %>%
-  #   mutate(Time = (TimeFinderDF$min*60) + TimeFinderDF$sec)
-  # })
-  # 
   
   RecordPlot <- reactive({
     req(input$SchoolSelectA)
