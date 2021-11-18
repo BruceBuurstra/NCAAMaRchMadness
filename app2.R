@@ -208,6 +208,7 @@ ui <- fluidPage(
                       fluidRow(
                         column(6,
                                tableOutput(outputId = "SchoolHistory1"),
+                               hr(),
                                tableOutput("SchoolHistory2")
                         ),
                         column(6,
@@ -508,8 +509,8 @@ server <- function(input, output, session) {
   })
   
   #tables for team comparisons
-  output$SchoolHistory1 <- renderTable({
-    Big_Dance_Seeds %>% filter(`high seed team` == req(input$SchoolSelectA[1]) | `low seed team` == req(input$SchoolSelectA[1])) %>% 
+  output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1]) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0)) %>% 
       summarise("Games Played" = n(),
@@ -519,10 +520,11 @@ server <- function(input, output, session) {
                 "Record" = paste(`# of wins`, "-", `# of losses`, sep = "")
                 ) %>% 
       mutate("Team" = input$SchoolSelectA[1]) %>% 
-      select(Team, `Games Played`, Record)
+      select(Team, `Games Played`, Record) %>% 
+      gt()
   })
   
-  output$SchoolHistory2 <- renderTable({
+  output$SchoolHistory2 <- renderTable({req(input$SchoolSelectA[2])
     Big_Dance_Seeds %>% filter(`high seed team` == req(input$SchoolSelectA[2]) | `low seed team` == req(input$SchoolSelectA[2])) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0)) %>% 
@@ -533,7 +535,9 @@ server <- function(input, output, session) {
                 "Record" = paste(`# of wins`, "-", `# of losses`, sep = "")
       ) %>% 
       mutate("Team" = input$SchoolSelectA[2]) %>% 
-      select(Team, `Games Played`, Record)
+      select(Team, `Games Played`, Record) %>% 
+      gt() %>% 
+      tab_header(title = md("Historical Record"))
   })
   #Program Finder
 
