@@ -184,10 +184,10 @@ ui <- fluidPage(
                                        )),
                                      hr(),
                                      br(),
-                                     fluidRow((dataTableOutput(outputId = "data2"))),
+                                     fluidRow((dataTableOutput(outputId = "seedsTable"))),
                                      hr(),
                                      br(),
-                                     fluidRow((plotOutput(outputId = "spreads_histogram", brush = "plot_hover"))),
+                                     fluidRow((plotOutput(outputId = "seedsSpreadHist", brush = "plot_hover"))),
                                      hr(),
                                      br(),
                                      fluidRow((dataTableOutput(outputId = "moviestable")))
@@ -292,10 +292,10 @@ ui <- fluidPage(
                                        )),
                                      hr(),
                                      br(),
-                                     fluidRow((dataTableOutput(outputId = "data3"))),
+                                     fluidRow((dataTableOutput(outputId = "seedsRoundTable"))),
                                      hr(),
                                      br(),
-                                     fluidRow((plotOutput(outputId = "spreads_histogram2", brush = "plot_hover"))),
+                                     fluidRow((plotOutput(outputId = "seedsSpreadHist2", brush = "plot_hover"))),
                                      hr(),
                                      br(),
                                      fluidRow((dataTableOutput(outputId = "moviestable2")))
@@ -440,7 +440,13 @@ server <- function(input, output, session) {
                                                                                                                                                    summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
     }
   })
-  output$data2 <- renderDataTable({
+  
+  output$win_names <- renderText({
+    paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                            as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                                                                                                                                             as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " Seed Wins")
+  })
+  output$seedsTable <- renderDataTable({
     if (input$seed1_2 == input$seed2_2){
       DT::datatable(data = Big_Dance_Seeds %>%
                       filter(
@@ -449,7 +455,7 @@ server <- function(input, output, session) {
                         Year >= input$year_2[1],
                         Year <= input$year_2[2])%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-                      summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
+                      summarise(winningScore = round(mean(`winning score`),2), losingScore = round(mean(`losing score`),2), avgDiff = round(mean(Difference),2)))
     }
     else{
       Big_Dance_Seeds %>%
@@ -459,11 +465,11 @@ server <- function(input, output, session) {
                Year <= input$year_2[2])%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         group_by(`high seed win`)%>%
-        summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
+        summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2))
     }
   })
   
-  output$spreads_histogram <- renderPlot({
+  output$seedsSpreadHist <- renderPlot({
     if (input$seed1_2 == input$seed2_2){
       Big_Dance_Seeds %>%
         filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
@@ -475,6 +481,10 @@ server <- function(input, output, session) {
         geom_histogram()
     }
     else{
+      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
+                                          as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"), 
+                    `1` = paste(case_when(as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
+                                          as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"))
       Big_Dance_Seeds %>%
         filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
                  `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
@@ -483,7 +493,7 @@ server <- function(input, output, session) {
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
         geom_histogram()+
-        facet_wrap(~ `high seed win`, ncol = 1)
+        facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names), scales='free')
     }
   })
   
@@ -498,7 +508,7 @@ server <- function(input, output, session) {
   })
   
   
-  output$data3 <- renderDataTable({
+  output$seedsRoundTable <- renderDataTable({
     if (input$seed1_4 == input$seed2_4){
       DT::datatable(data = Big_Dance_Seeds %>%
                       filter(
@@ -523,27 +533,30 @@ server <- function(input, output, session) {
     }
   })
   
-  output$spreads_histogram2 <- renderPlot({
+  output$seedsSpreadHist2 <- renderPlot({
     if (input$seed1_4 == input$seed2_4){
       Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-               Year >= input$year_2[1],
-               Year <= input$year_2[2])%>%
+        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
+                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+               Year >= input$year_4[1],
+               Year <= input$year_4[2],
+               `round name` == input$round)%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
         geom_histogram()
     }
     else{
+      win_names = c(`0` = "Low Seed Win", `1` = "High Seed Win")
       Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-               Year >= input$year_2[1],
-               Year <= input$year_2[2])%>%
+        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
+                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+               Year >= input$year_4[1],
+               Year <= input$year_4[2],
+               `round name` == input$round)%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
         geom_histogram()+
-        facet_wrap(~ `high seed win`, ncol = 1)
+        facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names))
     }
   })
   
@@ -609,25 +622,6 @@ server <- function(input, output, session) {
   })
   #Program Finder
   
-  RecordPlot <- reactive({
-    req(input$SchoolSelectA)
-  })
-  BigDanceSeeds_finder <- reactive({
-    req(input$seed1)
-    req(input$seed2)
-    req(input$year)
-  })
-  
-  Matchups_finder <- reactive({
-    req(input$seed1)
-    req(input$seed2)
-    req(input$year)
-    filter(Big_Dance_Seeds, `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year)%>%
-      na.omit() %>% 
-      summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
-      mutate("# of wins" = `win %` * `# of games`) %>% 
-      select(`# of wins`, `# of games`, `win %`)
-  })
   
   # BigTop100_finder <- reactive({
   #   req(input$DivisionFinder)
