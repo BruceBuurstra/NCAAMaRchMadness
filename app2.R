@@ -423,17 +423,12 @@ server <- function(input, output, session) {
                                    select(`# of wins`, `# of games`, `win %`))
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
-<<<<<<< HEAD
-                                      filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]))
-=======
-                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
+                                    filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
                                     select(Year, Round, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
->>>>>>> 867461338be114166994e4fa8a8e93c86bccd00a
-  
+
   output$text <- renderText({
     if (input$seed1 == input$seed2){
       "These teams are the same seed."
-      
     }
     else{
       paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
