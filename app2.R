@@ -28,17 +28,23 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
                                      Seed_1 > Seed ~ Team_1,
                                      Seed == Seed_1 ~ Team_1),
          "high seed score" = case_when(Seed < Seed_1 ~ Score,
-                                  Seed_1 < Seed ~ Score_1,
-                                  Seed == Seed_1 ~ Score),
+                                       Seed_1 < Seed ~ Score_1,
+                                       Seed == Seed_1 ~ Score),
          "low seed score" = case_when(Seed > Seed_1 ~ Score,
-                                 Seed_1 > Seed ~ Score_1,
-                                 Seed == Seed_1 ~ Score_1),
+                                      Seed_1 > Seed ~ Score_1,
+                                      Seed == Seed_1 ~ Score_1),
          "winning score" = case_when(Score > Score_1 ~ Score,
                                      Score_1 > Score ~ Score_1),
          "losing score" = case_when(Score < Score_1 ~ Score,
                                     Score_1 < Score ~ Score_1),
          "high seed win" = case_when(`high seed score` > `low seed score` ~ 1,
-                                     `high seed score` < `low seed score` ~ 0)) %>% 
+                                     `high seed score` < `low seed score` ~ 0),
+         "round name" = case_when(Round == 1 ~ "Round of 64",
+                                  Round == 2 ~ "Round of 32",
+                                  Round == 3 ~ "Sweet 16",
+                                  Round == 4 ~ "Elite 8",
+                                  Round == 5 ~ "Final 4",
+                                  Round == 6 ~ "Championship")) %>% 
   select(-Team, -Team_1, -Score, -Score_1, -Seed, -Seed_1)
 
 
@@ -54,15 +60,15 @@ font-size: 15px;
 
 # Define UI
 ui <- fluidPage(
-
-#Navbar structure for UI
+  
+  #Navbar structure for UI
   navbarPage("NCAA March Madness", theme = shinytheme("lumen"),
              tabPanel("Matchup Finder", fluid = TRUE, icon = icon("basketball-ball"),
                       tags$style(button_color_css),
                       # Sidebar layout with a input and output definitions
                       sidebarLayout(
                         sidebarPanel(
-
+                          
                           titlePanel("Desired Matchup"),
                           fluidRow(column(8,
                                           selectInput(inputId = "seed1",
@@ -85,11 +91,11 @@ ui <- fluidPage(
                                       value = c(1985, 2021),
                                       width = "220px"),
                           hr(),
-                          ),
+                        ),
                         mainPanel(
                           fluidRow(
                             column(12,
-                          )),
+                            )),
                           hr(),
                           textOutput(outputId = "text"),
                           hr(),
@@ -101,10 +107,10 @@ ui <- fluidPage(
                           ),
                           br(),
                           fluidRow((dataTableOutput(outputId = "bigdata")))
-                          )
+                        )
                       )
              ),
-            # Team Statistics Panel
+             # Team Statistics Panel
              tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Team Statistics"),
                       fluidRow(
@@ -138,294 +144,315 @@ ui <- fluidPage(
                         ),
                         column(6,
                                dataTableOutput(outputId = "SchoolCompStats"),
-                              # helpText("For more information on school types and US News rankings please see More > About > School Types & Rankings")
+                               # helpText("For more information on school types and US News rankings please see More > About > School Types & Rankings")
                         )
-                    )  
+                      )  
              ),
-
-  navbarMenu("Spread Comparisons", icon = icon("chart-bar"),
-             tabPanel("Spread Comparision Between Seeds", fluid = TRUE,
-                      tags$style(button_color_css),
-                      sidebarLayout(
-                        sidebarPanel(
-                          
-                          titlePanel("Desired Matchup"),
-                          fluidRow(column(8,
-                                          selectInput(inputId = "seed1_2",
-                                                      label = "Team Seed:",
-                                                      choices = c(1:16),
-                                                      selected = 1),
-                                          hr(),
-                                          selectInput(inputId = "seed2_2", 
-                                                      label = "Opponent Seed:",
-                                                      choices = c(1:16), 
-                                                      selected = 1)
-                                          
-                          ),
-                          ),
-                          hr(),
-                          sliderInput(inputId = "year_2",
-                                      label = "Select Year Range",
-                                      min = 1985,
-                                      max = 2021,
-                                      value = c(1985, 2021),
-                                      width = "220px"),
-                          hr(),
+             
+             navbarMenu("Spread Comparisons", icon = icon("chart-bar"),
+                        tabPanel("Spread Comparision Between Seeds", fluid = TRUE,
+                                 tags$style(button_color_css),
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     
+                                     titlePanel("Desired Matchup"),
+                                     fluidRow(column(8,
+                                                     selectInput(inputId = "seed1_2",
+                                                                 label = "Team Seed:",
+                                                                 choices = c(1:16),
+                                                                 selected = 1),
+                                                     hr(),
+                                                     selectInput(inputId = "seed2_2", 
+                                                                 label = "Opponent Seed:",
+                                                                 choices = c(1:16), 
+                                                                 selected = 1)
+                                                     
+                                     ),
+                                     ),
+                                     hr(),
+                                     sliderInput(inputId = "year_2",
+                                                 label = "Select Year Range",
+                                                 min = 1985,
+                                                 max = 2021,
+                                                 value = c(1985, 2021),
+                                                 width = "220px"),
+                                     hr(),
+                                   ),
+                                   mainPanel(
+                                     fluidRow(
+                                       column(12,
+                                       )),
+                                     hr(),
+                                     br(),
+                                     fluidRow((dataTableOutput(outputId = "data2"))),
+                                     hr(),
+                                     br(),
+                                     fluidRow((plotOutput(outputId = "spreads_histogram", brush = "plot_hover"))),
+                                     hr(),
+                                     br(),
+                                     fluidRow((dataTableOutput(outputId = "moviestable")))
+                                   )
+                                 )
                         ),
-                        mainPanel(
-                          fluidRow(
-                            column(12,
-                            )),
-                          hr(),
-                          br(),
-                          fluidRow((dataTableOutput(outputId = "data2"))),
-                          hr(),
-                          br(),
-                          fluidRow((plotOutput(outputId = "spreads_histogram", brush = "plot_hover"))),
-                          hr(),
-                          br(),
-                          fluidRow((dataTableOutput(outputId = "moviestable")))
+                        tabPanel("Spread Comparison Between Conferences", fluid = TRUE,
+                                 
+                                 column(6,
+                                        br(),
+                                        h4("Differences Between NCAA Divisions"),
+                                        h5(p(
+                                          "The NCAA rules regarding eligibility of student athletes, scholarships, transfers, time commitments, etc. can be quite complex.  This is intended only as a general primer.  For more information please visit the ",
+                                          a("NCAA.",
+                                            href = "http://www.ncaa.org/about/frequently-asked-questions-about-ncaa"))),
+                                        h5(p("There are three divisions in the NCAA.  They differ in their makeup, in terms of which types of schools choose to participate in which division, but the most significant differences between the divisions concern athletic scholarships."
+                                        )),
+                                        h5(p(
+                                          "Put most simply schools that compete in Division I and Division II are allowed to offer athletic scholarships.  Division III schools are not.  The number of scholarships available differ by gender, with limits imposed by the NCAA.  For men’s  swimming and diving (taken together) Division I schools are allowed to offer a total of 9.9 full scholarships, whereas Division II schools can only offer 8.1 full scholarships.  For women’s swimming and diving the limits are 14 and 8.1 respectively.  These scholarships can be split into partials, with multiple student athletes receiving a portion of a full scholarship.  How scholarships are doled out is usually up to the coach. Coaches might attempt to recruit a few high powered athletes by offering them full scholarships, and give less to others, or they might distribute the scholarship portions more evenly.  In swimming Division I is generally faster than Division II, which in turn is faster than Division III, at least at the faster end.  Performance differences between the divisions can be explored by event using the plot at left."
+                                        )),
+                                        h5(p(
+                                          "While upper limits on scholarships are imposed by the NCAA, actual scholarships available also depend on the financial circumstances of the school and the swimming/diving program.  Schools may be allowed to offer more scholarships than they can afford."
+                                        )),
+                                        h5(p(
+                                          "Schools can also choose not to offer athletic scholarships, either in a particular sport, or across the board.   The eight Ivy League schools for example compete in Division I but as a policy do not offer any athletic scholarships."
+                                        )),
+                                        h5(p(
+                                          "Regarding time commitments, Division I and II teams are permitted by the NCAA to practice out of season.  Division III teams may only practice during the season.  In all cases seasons are dined by NCAA rules, with strict limits for what is and isn’t in-season.  All divisions are bound by the “20-hour” rule, where athletes are only permitted to practice for 20 hours a week during the season.  In reality athletes practice often practice much more, especially in ",
+                                          a("Division I.",
+                                            href = "https://www.businessinsider.com/college-student-athletes-spend-40-hours-a-week-practicing-2015-1"))
+                                        ))),
+                        
+                        tabPanel("Spread Comparisons Between Seeds/Conferences", fluid = TRUE,
+                                 titlePanel("Division I School Types"),
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     # Select which Gender(s) to plot
+                                     checkboxGroupInput(inputId = "GenderDI",
+                                                        label = "Select Gender(s):",
+                                                        choices = c("Male" = "M", "Female" = "F"),
+                                                        selected = "M"),
+                                     # Select which Region(s) to plot
+                                     checkboxGroupInput(inputId = "RegionDI",
+                                                        label = "Select Region:",
+                                                        choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
+                                                        selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
+                                     # Set Top X Rank
+                                     sliderInput(inputId = "RankDI",
+                                                 label = "Top Times Range:",
+                                                 min = 1, max = 3500,
+                                                 value = c(1,250)),
+                                     # Set school rank
+                                     sliderInput(inputId = "School_RankDI",
+                                                 label = "School Rank",
+                                                 min = 1,
+                                                 max = 250,
+                                                 value = c(1,250))
+                                   ),
+                                   mainPanel(
+                                     withSpinner(plotOutput(outputId = "barplotDI")),
+                                     textOutput(outputId = "description_DI")
+                                     #plotOutput(outputId = "scatterplotDI")
+                                   )
+                                 )
+                        ),
+                        tabPanel("Spread Comparison by Seeds per Round", fluid = TRUE,
+                                 tags$style(button_color_css),
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     
+                                     titlePanel("Desired Matchup"),
+                                     fluidRow(column(8,
+                                                     selectInput(inputId = "seed1_4",
+                                                                 label = "Team Seed:",
+                                                                 choices = c(1:16),
+                                                                 selected = 1),
+                                                     hr(),
+                                                     selectInput(inputId = "seed2_4", 
+                                                                 label = "Opponent Seed:",
+                                                                 choices = c(1:16), 
+                                                                 selected = 1)
+                                                     
+                                     ),
+                                     ),
+                                     hr(),
+                                     selectInput(inputId = "round",
+                                                 label = "Round:",
+                                                 choices = Big_Dance_Seeds$`round name`,
+                                                 selected = Big_Dance_Seeds$`round name`[0]),
+                                     hr(),
+                                     sliderInput(inputId = "year_4",
+                                                 label = "Select Year Range",
+                                                 min = 1985,
+                                                 max = 2021,
+                                                 value = c(1985, 2021),
+                                                 width = "220px"),
+                                     hr(),
+                                   ),
+                                   mainPanel(
+                                     fluidRow(
+                                       column(12,
+                                       )),
+                                     hr(),
+                                     br(),
+                                     fluidRow((dataTableOutput(outputId = "data3"))),
+                                     hr(),
+                                     br(),
+                                     fluidRow((plotOutput(outputId = "spreads_histogram2", brush = "plot_hover"))),
+                                     hr(),
+                                     br(),
+                                     fluidRow((dataTableOutput(outputId = "moviestable2")))
+                                   )
+                                 )
+                        ),
+                        tabPanel("Spread Comparisons by Seeds/Conferences per Round", fluid = TRUE,
+                                 titlePanel("Division III School Types"),
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     # Select which Gender(s) to plot
+                                     checkboxGroupInput(inputId = "GenderDIII",
+                                                        label = "Select Gender(s):",
+                                                        choices = c("Male" = "M", "Female" = "F"),
+                                                        selected = "M"),
+                                     # Select which Region(s) to plot
+                                     checkboxGroupInput(inputId = "RegionDIII",
+                                                        label = "Select Region:",
+                                                        choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
+                                                        selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
+                                     # Set Top X Rank
+                                     sliderInput(inputId = "RankDIII",
+                                                 label = "Top Times Range:",
+                                                 min = 1, max = 3500,
+                                                 value = c(1,250)),
+                                     # Set school rank
+                                     sliderInput(inputId = "School_RankDIII",
+                                                 label = "School Rank",
+                                                 min = 1,
+                                                 max = 250,
+                                                 value = c(1,250))
+                                   ),
+                                   mainPanel(
+                                     withSpinner(plotOutput(outputId = "barplotDIII")),
+                                     textOutput(outputId = "description_DIII")
+                                   )
+                                 )
                         )
-                      )
              ),
-             tabPanel("Spread Comparison Between Conferences", fluid = TRUE,
-
-                        column(6,
-                               br(),
-                               h4("Differences Between NCAA Divisions"),
-                               h5(p(
-                                 "The NCAA rules regarding eligibility of student athletes, scholarships, transfers, time commitments, etc. can be quite complex.  This is intended only as a general primer.  For more information please visit the ",
-                                 a("NCAA.",
-                                   href = "http://www.ncaa.org/about/frequently-asked-questions-about-ncaa"))),
-                               h5(p("There are three divisions in the NCAA.  They differ in their makeup, in terms of which types of schools choose to participate in which division, but the most significant differences between the divisions concern athletic scholarships."
-                               )),
-                               h5(p(
-                                 "Put most simply schools that compete in Division I and Division II are allowed to offer athletic scholarships.  Division III schools are not.  The number of scholarships available differ by gender, with limits imposed by the NCAA.  For men’s  swimming and diving (taken together) Division I schools are allowed to offer a total of 9.9 full scholarships, whereas Division II schools can only offer 8.1 full scholarships.  For women’s swimming and diving the limits are 14 and 8.1 respectively.  These scholarships can be split into partials, with multiple student athletes receiving a portion of a full scholarship.  How scholarships are doled out is usually up to the coach. Coaches might attempt to recruit a few high powered athletes by offering them full scholarships, and give less to others, or they might distribute the scholarship portions more evenly.  In swimming Division I is generally faster than Division II, which in turn is faster than Division III, at least at the faster end.  Performance differences between the divisions can be explored by event using the plot at left."
-                               )),
-                               h5(p(
-                                 "While upper limits on scholarships are imposed by the NCAA, actual scholarships available also depend on the financial circumstances of the school and the swimming/diving program.  Schools may be allowed to offer more scholarships than they can afford."
-                               )),
-                               h5(p(
-                                 "Schools can also choose not to offer athletic scholarships, either in a particular sport, or across the board.   The eight Ivy League schools for example compete in Division I but as a policy do not offer any athletic scholarships."
-                               )),
-                               h5(p(
-                                 "Regarding time commitments, Division I and II teams are permitted by the NCAA to practice out of season.  Division III teams may only practice during the season.  In all cases seasons are dined by NCAA rules, with strict limits for what is and isn’t in-season.  All divisions are bound by the “20-hour” rule, where athletes are only permitted to practice for 20 hours a week during the season.  In reality athletes practice often practice much more, especially in ",
-                                 a("Division I.",
-                                   href = "https://www.businessinsider.com/college-student-athletes-spend-40-hours-a-week-practicing-2015-1"))
-                               ))),
-
-             tabPanel("Spread Comparisons Between Seeds/Conferences", fluid = TRUE,
-                      titlePanel("Division I School Types"),
-                      sidebarLayout(
-                        sidebarPanel(
-                          # Select which Gender(s) to plot
-                          checkboxGroupInput(inputId = "GenderDI",
-                                             label = "Select Gender(s):",
-                                             choices = c("Male" = "M", "Female" = "F"),
-                                             selected = "M"),
-                          # Select which Region(s) to plot
-                          checkboxGroupInput(inputId = "RegionDI",
-                                             label = "Select Region:",
-                                             choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
-                                             selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
-                          # Set Top X Rank
-                          sliderInput(inputId = "RankDI",
-                                      label = "Top Times Range:",
-                                      min = 1, max = 3500,
-                                      value = c(1,250)),
-                          # Set school rank
-                          sliderInput(inputId = "School_RankDI",
-                                      label = "School Rank",
-                                      min = 1,
-                                      max = 250,
-                                      value = c(1,250))
-                        ),
-                        mainPanel(
-                          withSpinner(plotOutput(outputId = "barplotDI")),
-                          textOutput(outputId = "description_DI")
-                          #plotOutput(outputId = "scatterplotDI")
-                        )
-                      )
-             ),
-             tabPanel("Spread Comparison by Seeds per Round", fluid = TRUE,
-                      titlePanel("Division II School Types"),
-                      sidebarLayout(
-                        sidebarPanel(
-                          # Select which Gender(s) to plot
-                          checkboxGroupInput(inputId = "GenderDII",
-                                             label = "Select Gender(s):",
-                                             choices = c("Male" = "M", "Female" = "F"),
-                                             selected = "M"),
-                          # Select which Region(s) to plot
-                          checkboxGroupInput(inputId = "RegionDII",
-                                             label = "Select Region:",
-                                             choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
-                                             selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
-                          # Set Top X Rank
-                          sliderInput(inputId = "RankDII",
-                                      label = "Top Times Range:",
-                                      min = 1, max = 3500,
-                                      value = c(1,250)),
-                          # Set school rank
-                          sliderInput(inputId = "School_RankDII",
-                                      label = "School Rank",
-                                      min = 1,
-                                      max = 250,
-                                      value = c(1,250))
-                        ),
-                        mainPanel(
-                          withSpinner(plotOutput(outputId = "barplotDII")),
-                          textOutput(outputId = "description_DII")
-                        )
-                      )
-             ),
-             tabPanel("Spread Comparisons by Seeds/Conferences per Round", fluid = TRUE,
-                      titlePanel("Division III School Types"),
-                      sidebarLayout(
-                        sidebarPanel(
-                          # Select which Gender(s) to plot
-                          checkboxGroupInput(inputId = "GenderDIII",
-                                             label = "Select Gender(s):",
-                                             choices = c("Male" = "M", "Female" = "F"),
-                                             selected = "M"),
-                          # Select which Region(s) to plot
-                          checkboxGroupInput(inputId = "RegionDIII",
-                                             label = "Select Region:",
-                                             choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
-                                             selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
-                          # Set Top X Rank
-                          sliderInput(inputId = "RankDIII",
-                                      label = "Top Times Range:",
-                                      min = 1, max = 3500,
-                                      value = c(1,250)),
-                          # Set school rank
-                          sliderInput(inputId = "School_RankDIII",
-                                      label = "School Rank",
-                                      min = 1,
-                                      max = 250,
-                                      value = c(1,250))
-                        ),
-                        mainPanel(
-                          withSpinner(plotOutput(outputId = "barplotDIII")),
-                          textOutput(outputId = "description_DIII")
-                        )
-                      )
-             )
-  ),
-  navbarMenu("More", icon = icon("info-circle"),
-             tabPanel("School Types & Rankings", fluid = TRUE,
-                      fluidRow(
-                        column(6,
-                               h4(p("School Types")),
-                               h5(p("US News and World Report uses four categories of schools for their rankings system:"),
-                                  p("National universities are those that offer a “full range” of undergraduate majors, while also offering graduate programs, including at the doctoral level.  Intercollegiate sports, including swimming, are generally pursued by undergrads, or occasionally students in master’s degree programs, so a university having nor not having doctoral programs isn’t directly relevant.  That said, doctoral programs and faculty research go hand-in-hand, so faculty at national universities are nearly always active in research, in addition to their teaching duties.  National universities are usually, though not always, large.  Most state flagship universities would fall under this category."),
-                                  p("Regional universities are similar to national universities in that they have a wide range of undergrad programs, and some master’s programs as well.  They generally do not have large doctoral programs, and correspondingly less faculty research."),
-                                  p("National liberal arts colleges are undergraduate focused, with few graduate programs.  They award the majority of their degrees in arts and sciences, and may or may not have other undergraduate programs, like engineering or professional studies."),
-                                  p("Regional colleges are also undergraduate focused institutions, but do not award the majority of their degrees in arts and/or sciences.  These colleges may have a particular focus, like technology or agriculture, or they may be primarily two year institutions that also grant some four year degrees.")
-                               )
-                        ),
-                        column(6,
-                               h4(p("US News Rankings")),
-                               h5(p("Every year the US News and World Report issues a set of rankings for US colleges and universities.  They are a used in this setting as a guideline, and a general comparative device, but can often be misinterpreted or overvalued.  The major component of a given school’s rankings are graduation and retention rates, academic reputation (basically name recognition), and faculty resources (class size, faculty salary etc.).  Each school is given a score, and then placed in order.  That said the scored differences between schools of different rank can be quite small, so take the rankings with a grain of salt.
+             navbarMenu("More", icon = icon("info-circle"),
+                        tabPanel("School Types & Rankings", fluid = TRUE,
+                                 fluidRow(
+                                   column(6,
+                                          h4(p("School Types")),
+                                          h5(p("US News and World Report uses four categories of schools for their rankings system:"),
+                                             p("National universities are those that offer a “full range” of undergraduate majors, while also offering graduate programs, including at the doctoral level.  Intercollegiate sports, including swimming, are generally pursued by undergrads, or occasionally students in master’s degree programs, so a university having nor not having doctoral programs isn’t directly relevant.  That said, doctoral programs and faculty research go hand-in-hand, so faculty at national universities are nearly always active in research, in addition to their teaching duties.  National universities are usually, though not always, large.  Most state flagship universities would fall under this category."),
+                                             p("Regional universities are similar to national universities in that they have a wide range of undergrad programs, and some master’s programs as well.  They generally do not have large doctoral programs, and correspondingly less faculty research."),
+                                             p("National liberal arts colleges are undergraduate focused, with few graduate programs.  They award the majority of their degrees in arts and sciences, and may or may not have other undergraduate programs, like engineering or professional studies."),
+                                             p("Regional colleges are also undergraduate focused institutions, but do not award the majority of their degrees in arts and/or sciences.  These colleges may have a particular focus, like technology or agriculture, or they may be primarily two year institutions that also grant some four year degrees.")
+                                          )
+                                   ),
+                                   column(6,
+                                          h4(p("US News Rankings")),
+                                          h5(p("Every year the US News and World Report issues a set of rankings for US colleges and universities.  They are a used in this setting as a guideline, and a general comparative device, but can often be misinterpreted or overvalued.  The major component of a given school’s rankings are graduation and retention rates, academic reputation (basically name recognition), and faculty resources (class size, faculty salary etc.).  Each school is given a score, and then placed in order.  That said the scored differences between schools of different rank can be quite small, so take the rankings with a grain of salt.
                                     The full methodology for the US News and World report college rankings can be found ",
-                                    a("here.",
-                                      href = "https://www.usnews.com/education/best-colleges/articles/ranking-criteria-and-weights"))
-                               )
-                      ))
-
+                                               a("here.",
+                                                 href = "https://www.usnews.com/education/best-colleges/articles/ranking-criteria-and-weights"))
+                                          )
+                                   ))
+                                 
                         ),
-
-               tabPanel("About", fluid = TRUE,
-               fluidRow(
-               column(6,
-                      #br(),
-                      h4(p("About the Project")),
-                      h5(p("This project is intended to facilitate useful comparisons between colleges in the NCAA, based on swimming performance, location, and academic information.  Here a prospective student-athlete, or anyone else with an interest can find schools fitting a particular set of criterion relevant to them, for example, schools close to home, with times in a particular range, and of a specified academic profile.")),
-                         br(),
-                         h5(p("The project began as an attempt to combine my interest in swimming with a need to practice R, a programming language used primarily for analyzing and reporting data.  It has two components.  The first is this app, which queries a dataset to return information in the form of plots, data tables etc.  The second is the dataset itself, which I assembled by tying together information from the sources below.")),
-                         br(),
-                         h5(p("I hope you find it interesting and/or useful.  Any comments or questions are welcome at gpilgrim2607@gmail.com"),
-                            p("The source code for this Shiny app is available ", a("on github", href = "https://github.com/gpilgrim2670/SwimMap"), "."))
-
-                      #hr(),
-
-               ),
-               column(6,
-                      #br(),
-          #             HTML('<img src="GregPicCrop.png", height="110px"
-          # style="float:right"/>','<p style="color:black"></p>'),
-                      h4(p("About the Author")),
-                      h5(p("Greg is a former collegiate swimmer.  After completing his undergrad degree he joined USMS, earned a PhD in chemistry, and began officiating swimming at the high school level.  He now swims with his local USMS team and serves as an official in USA Swimming while also working as an engineer.  He is the author the", a("SwimmeR package", href = "https://github.com/gpilgrim2670/SwimmeR"), "for working with swimming results in the R environment."),
-                         p("For more work with swimming and R see Greg's articles at ", a("Swimming + Data Science", href = 'https://pilgrim.netlify.app/'), "."),
-
-                      ),
-          HTML('<img src="GregPicCrop.png", height="200px"'),
-          br()
-                          )
-          ),
-          br(),
-          hr(),
-          h5("Sources:"),
-          h6(
-            p("Swimming Information from ",
-              a("USA Swimming",
-                href = "https://www.usaswimming.org/Home/times/ncaa-information"))),
-          h6(
-            p("US News College Rankings from ",
-              a("US News",
-                href = "https://www.usnews.com/best-colleges/rankings"))),
-          h5("Built with",
-             img(src = "https://www.rstudio.com/wp-content/uploads/2014/04/shiny.png", height = "30px"),
-             "by",
-             img(src = "https://www.rstudio.com/wp-content/uploads/2014/07/RStudio-Logo-Blue-Gray.png", height = "30px"),
-             ".")
+                        
+                        tabPanel("About", fluid = TRUE,
+                                 fluidRow(
+                                   column(6,
+                                          #br(),
+                                          h4(p("About the Project")),
+                                          h5(p("This project is intended to facilitate useful comparisons between colleges in the NCAA, based on swimming performance, location, and academic information.  Here a prospective student-athlete, or anyone else with an interest can find schools fitting a particular set of criterion relevant to them, for example, schools close to home, with times in a particular range, and of a specified academic profile.")),
+                                          br(),
+                                          h5(p("The project began as an attempt to combine my interest in swimming with a need to practice R, a programming language used primarily for analyzing and reporting data.  It has two components.  The first is this app, which queries a dataset to return information in the form of plots, data tables etc.  The second is the dataset itself, which I assembled by tying together information from the sources below.")),
+                                          br(),
+                                          h5(p("I hope you find it interesting and/or useful.  Any comments or questions are welcome at gpilgrim2607@gmail.com"),
+                                             p("The source code for this Shiny app is available ", a("on github", href = "https://github.com/gpilgrim2670/SwimMap"), "."))
+                                          
+                                          #hr(),
+                                          
+                                   ),
+                                   column(6,
+                                          #br(),
+                                          #             HTML('<img src="GregPicCrop.png", height="110px"
+                                          # style="float:right"/>','<p style="color:black"></p>'),
+                                          h4(p("About the Author")),
+                                          h5(p("Greg is a former collegiate swimmer.  After completing his undergrad degree he joined USMS, earned a PhD in chemistry, and began officiating swimming at the high school level.  He now swims with his local USMS team and serves as an official in USA Swimming while also working as an engineer.  He is the author the", a("SwimmeR package", href = "https://github.com/gpilgrim2670/SwimmeR"), "for working with swimming results in the R environment."),
+                                             p("For more work with swimming and R see Greg's articles at ", a("Swimming + Data Science", href = 'https://pilgrim.netlify.app/'), "."),
+                                             
+                                          ),
+                                          HTML('<img src="GregPicCrop.png", height="200px"'),
+                                          br()
+                                   )
+                                 ),
+                                 br(),
+                                 hr(),
+                                 h5("Sources:"),
+                                 h6(
+                                   p("Swimming Information from ",
+                                     a("USA Swimming",
+                                       href = "https://www.usaswimming.org/Home/times/ncaa-information"))),
+                                 h6(
+                                   p("US News College Rankings from ",
+                                     a("US News",
+                                       href = "https://www.usnews.com/best-colleges/rankings"))),
+                                 h5("Built with",
+                                    img(src = "https://www.rstudio.com/wp-content/uploads/2014/04/shiny.png", height = "30px"),
+                                    "by",
+                                    img(src = "https://www.rstudio.com/wp-content/uploads/2014/07/RStudio-Logo-Blue-Gray.png", height = "30px"),
+                                    ".")
                         )
+             )
   )
-)
 )
 
 # Define server
 server <- function(input, output, session) {
-
+  
   #Data Table
   
   output$matchups <- renderTable(Big_Dance_Seeds %>%
                                    filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
-                                          `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
-                                           Year >= input$year[1],
-                                           Year <= input$year[2])%>%
+                                            `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
+                                          Year >= input$year[1],
+                                          Year <= input$year[2])%>%
                                    summarise(`# of games` = n(),
-                                            `win %` = mean(`high seed win`)) %>%
+                                             `win %` = mean(`high seed win`)) %>%
                                    mutate("# of wins" = `win %` * `# of games`) %>% 
                                    select(`# of wins`, `# of games`, `win %`))
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
+<<<<<<< HEAD
+                                      filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]))
+=======
                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
                                     select(Year, Round, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
+>>>>>>> 867461338be114166994e4fa8a8e93c86bccd00a
   
   output$text <- renderText({
     if (input$seed1 == input$seed2){
       "These teams are the same seed."
       
-  }
-  else{
-    paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
-                            as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
-                                                                                                                     as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed ", as.numeric(
-                                                                                                                       Big_Dance_Seeds %>%
-                                                                                                                         filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
-                                                                                                                         na.omit() %>% 
-                                                                                                                         summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
-  }
+    }
+    else{
+      paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                              as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
+                                                                                                                                               as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed ", as.numeric(
+                                                                                                                                                 Big_Dance_Seeds %>%
+                                                                                                                                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
+                                                                                                                                                   na.omit() %>% 
+                                                                                                                                                   summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
+    }
   })
   output$data2 <- renderDataTable({
     if (input$seed1_2 == input$seed2_2){
       DT::datatable(data = Big_Dance_Seeds %>%
                       filter(
-                      `low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                      `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-                    Year >= input$year[1],
-                    Year <= input$year[2])%>%
+                        `low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                          `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+                        Year >= input$year_2[1],
+                        Year <= input$year_2[2])%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
                       summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
     }
@@ -474,6 +501,57 @@ server <- function(input, output, session) {
                     mutate(Difference = abs(`high seed score` - `low seed score`)), brush = input$plot_hover) %>%
       select(`high seed team`, `low seed team`, Difference)
   })
+  
+  
+  output$data3 <- renderDataTable({
+    if (input$seed1_4 == input$seed2_4){
+      DT::datatable(data = Big_Dance_Seeds %>%
+                      filter(
+                        `low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
+                          `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+                        Year >= input$year_4[1],
+                        Year <= input$year_4[2],
+                        `round name` == input$round)%>%
+                      mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+                      summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
+    }
+    else{
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
+                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+               Year >= input$year_4[1],
+               Year <= input$year_4[2],
+               `round name` == input$round)%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        group_by(`high seed win`)%>%
+        summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
+    }
+  })
+  
+  output$spreads_histogram2 <- renderPlot({
+    if (input$seed1_4 == input$seed2_4){
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+               Year >= input$year_2[1],
+               Year <= input$year_2[2])%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        ggplot(aes(Difference))+
+        geom_histogram()
+    }
+    else{
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+               Year >= input$year_2[1],
+               Year <= input$year_2[2])%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        ggplot(aes(Difference))+
+        geom_histogram()+
+        facet_wrap(~ `high seed win`, ncol = 1)
+    }
+  })
+  
   
   #tables for team comparisons
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
@@ -550,10 +628,10 @@ server <- function(input, output, session) {
     req(input$seed2)
     req(input$year)
     filter(Big_Dance_Seeds, `low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year)%>%
-    na.omit() %>% 
-    summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
-    mutate("# of wins" = `win %` * `# of games`) %>% 
-    select(`# of wins`, `# of games`, `win %`)
+      na.omit() %>% 
+      summarise(`# of games` = n(), `win %` = mean(`high seed win`)) %>%
+      mutate("# of wins" = `win %` * `# of games`) %>% 
+      select(`# of wins`, `# of games`, `win %`)
   })
   
   # BigTop100_finder <- reactive({
@@ -902,7 +980,7 @@ server <- function(input, output, session) {
   #                                ))
   #   )
   # })
-
+  
   session$onSessionEnded(stopApp)
 }
 # Run the application
