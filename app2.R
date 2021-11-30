@@ -125,7 +125,8 @@ ui <- fluidPage(
                                                               "Sweet Sixteen" = 3,
                                                               "Elite Eight" = 4,
                                                               "Final Four" = 5,
-                                                              "Championship" = 6))
+                                                              "Championship" = 6),
+                                                  selected = 1)
                         )
                       ),
                       hr(),
@@ -399,7 +400,8 @@ server <- function(input, output, session) {
                                    select(`# of wins`, `# of games`, `win %`))
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
-                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]))
+                                  filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
+                                    select(Year, Round, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
   
   output$text <- renderText({
     if (input$seed1 == input$seed2){
