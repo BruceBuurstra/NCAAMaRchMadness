@@ -38,13 +38,7 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
          "losing score" = case_when(Score < Score_1 ~ Score,
                                     Score_1 < Score ~ Score_1),
          "high seed win" = case_when(`high seed score` > `low seed score` ~ 1,
-                                     `high seed score` < `low seed score` ~ 0),
-         "round name" = case_when(Round == 1 ~ "Round of 64",
-                                  Round == 2 ~ "Round of 32",
-                                  Round == 3 ~ "Sweet 16",
-                                  Round == 4 ~ "Elite 8",
-                                  Round == 5 ~ "Final 4",
-                                  Round == 6 ~ "Championship")) %>% 
+                                     `high seed score` < `low seed score` ~ 0)) %>% 
   select(-Team, -Team_1, -Score, -Score_1, -Seed, -Seed_1)
 
 
@@ -254,51 +248,34 @@ ui <- fluidPage(
                       )
              ),
              tabPanel("Spread Comparison by Seeds per Round", fluid = TRUE,
-                      tags$style(button_color_css),
+                      titlePanel("Division II School Types"),
                       sidebarLayout(
                         sidebarPanel(
-                          
-                          titlePanel("Desired Matchup"),
-                          fluidRow(column(8,
-                                          selectInput(inputId = "seed1_4",
-                                                      label = "Team Seed:",
-                                                      choices = c(1:16),
-                                                      selected = 1),
-                                          hr(),
-                                          selectInput(inputId = "seed2_4", 
-                                                      label = "Opponent Seed:",
-                                                      choices = c(1:16), 
-                                                      selected = 1)
-                                          
-                          ),
-                          ),
-                          hr(),
-                          selectInput(inputId = "round",
-                                      label = "Round:",
-                                      choices = Big_Dance_Seeds$`round name`,
-                                      selected = Big_Dance_Seeds$`round name`[0]),
-                          hr(),
-                          sliderInput(inputId = "year_4",
-                                      label = "Select Year Range",
-                                      min = 1985,
-                                      max = 2021,
-                                      value = c(1985, 2021),
-                                      width = "220px"),
-                          hr(),
+                          # Select which Gender(s) to plot
+                          checkboxGroupInput(inputId = "GenderDII",
+                                             label = "Select Gender(s):",
+                                             choices = c("Male" = "M", "Female" = "F"),
+                                             selected = "M"),
+                          # Select which Region(s) to plot
+                          checkboxGroupInput(inputId = "RegionDII",
+                                             label = "Select Region:",
+                                             choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
+                                             selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
+                          # Set Top X Rank
+                          sliderInput(inputId = "RankDII",
+                                      label = "Top Times Range:",
+                                      min = 1, max = 3500,
+                                      value = c(1,250)),
+                          # Set school rank
+                          sliderInput(inputId = "School_RankDII",
+                                      label = "School Rank",
+                                      min = 1,
+                                      max = 250,
+                                      value = c(1,250))
                         ),
                         mainPanel(
-                          fluidRow(
-                            column(12,
-                            )),
-                          hr(),
-                          br(),
-                          fluidRow((dataTableOutput(outputId = "data3"))),
-                          hr(),
-                          br(),
-                          fluidRow((plotOutput(outputId = "spreads_histogram2", brush = "plot_hover"))),
-                          hr(),
-                          br(),
-                          fluidRow((dataTableOutput(outputId = "moviestable2")))
+                          withSpinner(plotOutput(outputId = "barplotDII")),
+                          textOutput(outputId = "description_DII")
                         )
                       )
              ),
@@ -447,8 +424,8 @@ server <- function(input, output, session) {
                       filter(
                       `low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
                       `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-                    Year >= input$year_2[1],
-                    Year <= input$year_2[2])%>%
+                    Year >= input$year[1],
+                    Year <= input$year[2])%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
                       summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
     }
@@ -497,57 +474,6 @@ server <- function(input, output, session) {
                     mutate(Difference = abs(`high seed score` - `low seed score`)), brush = input$plot_hover) %>%
       select(`high seed team`, `low seed team`, Difference)
   })
-  
-  
-  output$data3 <- renderDataTable({
-    if (input$seed1_4 == input$seed2_4){
-      DT::datatable(data = Big_Dance_Seeds %>%
-                      filter(
-                        `low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
-                          `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
-                        Year >= input$year_4[1],
-                        Year <= input$year_4[2],
-                        `round name` == input$round)%>%
-                      mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-                      summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
-    }
-    else{
-      Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
-                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
-               Year >= input$year_4[1],
-               Year <= input$year_4[2],
-               `round name` == input$round)%>%
-        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-        group_by(`high seed win`)%>%
-        summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
-    }
-  })
-  
-  output$spreads_histogram2 <- renderPlot({
-    if (input$seed1_4 == input$seed2_4){
-      Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-               Year >= input$year_2[1],
-               Year <= input$year_2[2])%>%
-        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-        ggplot(aes(Difference))+
-        geom_histogram()
-    }
-    else{
-      Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                 `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-               Year >= input$year_2[1],
-               Year <= input$year_2[2])%>%
-        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-        ggplot(aes(Difference))+
-        geom_histogram()+
-        facet_wrap(~ `high seed win`, ncol = 1)
-    }
-  })
-  
   
   #tables for team comparisons
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
@@ -604,6 +530,7 @@ server <- function(input, output, session) {
                 "Average Points Allowed" = mean(PA)) %>% 
       mutate("Team" = input$SchoolSelectA[2]) %>% 
       select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      filter(input$RoundSelect)
       gt() %>% 
       tab_header(title = md("Historical Record"))
   })
