@@ -6,7 +6,6 @@ library(ggrepel)
 library(tidyr)
 library(shinycssloaders)
 library(shinythemes)
-library(SwimmeR)
 library(gt)
 
 #Import Data
@@ -126,13 +125,18 @@ ui <- fluidPage(
                         column(6,
                                checkboxGroupInput(inputId = "RoundSelect",
                                                   label = "Select Round:",
-                                                  choices = c("Round of 64" = 1,
-                                                              "Round of 32" = 2,
-                                                              "Sweet Sixteen" = 3,
-                                                              "Elite Eight" = 4,
-                                                              "Final Four" = 5,
-                                                              "Championship" = 6),
-                                                  selected = 1)
+                                                  choices = c("Round of 64",
+                                                              "Round of 32",
+                                                              "Sweet 16",
+                                                              "Elite 8",
+                                                              "Final 4",
+                                                              "Championship"),
+                                                  selected = c("Round of 64",
+                                                               "Round of 32",
+                                                               "Sweet 16",
+                                                               "Elite 8",
+                                                               "Final 4",
+                                                               "Championship"))
                         )
                       ),
                       hr(),
@@ -335,7 +339,7 @@ ui <- fluidPage(
                                  )
                         )
              ),
-             navbarMenu("More", icon = icon("info-circle"),
+             navbarMenu("Simulator", icon = icon("random"),
                         tabPanel("School Types & Rankings", fluid = TRUE,
                                  fluidRow(
                                    column(6,
@@ -424,7 +428,7 @@ server <- function(input, output, session) {
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
                                     filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
-                                    select(Year, Round, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
+                                    select(Year, `round name`, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
 
   output$text <- renderText({
     if (input$seed1 == input$seed2){
@@ -550,7 +554,8 @@ server <- function(input, output, session) {
   
   #tables for team comparisons
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
-    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1]) %>% 
+    req(input$RoundSelect)
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1], `round name` %in% input$RoundSelect) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0),
              "Championship" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 6) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 6) ~ 1,
@@ -578,7 +583,8 @@ server <- function(input, output, session) {
       gt()
   })
   output$SchoolHistory2 <- renderTable({req(input$SchoolSelectA[2])
-    Big_Dance_Seeds %>% filter(`high seed team` == req(input$SchoolSelectA[2]) | `low seed team` == req(input$SchoolSelectA[2])) %>% 
+    req(input$RoundSelect)
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[2] | `low seed team` == input$SchoolSelectA[2], `round name` %in% input$RoundSelect) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0),
              "Championship" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 6) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 6) ~ 1,
@@ -600,10 +606,9 @@ server <- function(input, output, session) {
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
                 "Average Points Scored" = mean(PF),
-                "Average Points Allowed" = mean(PA)) %>% 
+                "Average Points Allowed" = mean(PA)) %>%
       mutate("Team" = input$SchoolSelectA[2]) %>% 
       select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
-      filter(input$RoundSelect)
       gt() %>% 
       tab_header(title = md("Historical Record"))
   })
