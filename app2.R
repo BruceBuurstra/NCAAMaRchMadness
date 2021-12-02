@@ -114,6 +114,7 @@ ui <- fluidPage(
                       titlePanel("Team Statistics"),
                       fluidRow(
                         column(6,
+                               # Select input for which schools to show tables for
                                selectizeInput(inputId = "SchoolSelectA",
                                               label = "Select Schools (Max 2)",
                                               choices = sort(c(Big_Dance_Seeds$`high seed team`, Big_Dance_Seeds$`low seed team`)),
@@ -123,6 +124,7 @@ ui <- fluidPage(
                                ),
                         ),
                         column(6,
+                               # Select Round
                                checkboxGroupInput(inputId = "RoundSelect",
                                                   label = "Select Round:",
                                                   choices = c("Round of 64",
@@ -339,17 +341,9 @@ ui <- fluidPage(
                      ),
                      ),
                      hr(),
-                     selectInput(inputId = "round5",
-                                 label = "Round:",
-                                 choices = Big_Dance_Seeds$`round name`,
-                                 selected = Big_Dance_Seeds$`round name`[0]),
-                     hr(),
-                     sliderInput(inputId = "year_8",
-                                 label = "Select Year Range",
-                                 min = 1985,
-                                 max = 2021,
-                                 value = c(1985, 2021),
-                                 width = "220px"),
+                     br(),
+                     actionButton(inputId = "Randomize", label = "Simulate Matchup"),
+
                      hr(),
                    ),
                    mainPanel(
@@ -358,7 +352,7 @@ ui <- fluidPage(
                        )),
                      hr(),
                      br(),
-                     fluidRow((dataTableOutput(outputId = "seedsRoundTeable"))),
+                     fluidRow((textOutput(outputId = "ProbabilityShow"))),
                      hr(),
                      br(),
                      fluidRow((plotOutput(outputId = "seedsSpreadHist3", brush = "plot_hover"))),
@@ -583,12 +577,55 @@ server <- function(input, output, session) {
                 "Average Points Allowed" = mean(PA)) %>%
       mutate("Team" = input$SchoolSelectA[2]) %>% 
       select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
-      gt() %>% 
-      tab_header(title = md("Historical Record"))
+      gt()
   })
-  #Program Finder
+  # Reactives for Team Records
+  Team1_Record <- reactive({
+    req(input$RoundSelect)
+    req(input$SchoolSelectA[1])
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1], `round name` %in% input$RoundSelect) %>%
+      mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
+                               (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                "Average Points Scored" = mean(PF),
+                "Average Points Allowed" = mean(PA)) %>% 
+      mutate("Team" = input$SchoolSelectA[1]) %>% 
+      select(Team, `Games Played`, `win%`, Record, `Average Points Scored`, `Average Points Allowed`)
+  })
   
+  Team2_Record <- reactive({
+    req(input$RoundSelect)
+    req(input$SchoolSelectA[2])
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[2] | `low seed team` == input$SchoolSelectA[2], `round name` %in% input$RoundSelect) %>%
+      mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[2]& `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` > `high seed score`) ~ 1,
+                               (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                "Average Points Scored" = mean(PF),
+                "Average Points Allowed" = mean(PA)) %>% 
+      mutate("Team" = input$SchoolSelectA[2]) %>% 
+      select(Team, `Games Played`, `win%`, Record, `Average Points Scored`, `Average Points Allowed`)
+  })
   
+  Team1_Historical <- reactive({
+    req(input$RoundSelect)
+    req(input$SchoolSelectA[1])
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1]) %>% 
+    mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1]& `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
+                             (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""))
+  })
   # BigTop100_finder <- reactive({
   #   req(input$DivisionFinder)
   #   req(input$RegionFinder)
