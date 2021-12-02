@@ -36,16 +36,24 @@ scratch3 <- Big_Dance_Seeds %>%
   group_by(`high seed`, `low seed`)%>%
   summarise(`win %` = case_when(`high seed`==`low seed` ~.5,
                       TRUE ~ mean(`high seed win`))) %>%
-  select(`high seed`, `low seed`, `win %`)
+  select(`high seed`, `low seed`, `win %`, games = n())
 
 scratch3 <- Big_Dance_Seeds %>%
   na.omit()%>%
   group_by(`high seed`, `low seed`)%>%
-  summarise(`win %` = mean(`high seed win`)) %>%
-  select(`high seed`, `low seed`,`win %`)%>%
+  summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
+  select(`high seed`, `low seed`,`win %`, wins, games)%>%
   mutate(prob = case_when(`high seed`==`low seed` ~.5,
-                          TRUE ~ `win %`))%>%
-  select(`high seed`, `low seed`,prob)
+                          TRUE ~ `win %`),
+         new_wins = case_when(wins == 0 ~ wins +2,
+                              wins == games ~ wins +2,
+                              TRUE ~ wins), 
+         new_games = case_when(wins == 0 ~ games +4L,
+                               wins == games ~ games +4L,
+                               TRUE ~ games),
+         new_prob = case_when(`high seed`==`low seed` ~.5,
+                              TRUE ~ new_wins/new_games))%>%
+  select(`high seed`, `low seed`,new_prob)
 
 win_probs <- scratch3%>%
   pull(prob)

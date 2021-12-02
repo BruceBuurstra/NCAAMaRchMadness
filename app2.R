@@ -396,7 +396,7 @@ server <- function(input, output, session) {
                                                                                                                                                  Big_Dance_Seeds %>%
                                                                                                                                                    filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
                                                                                                                                                    na.omit() %>% 
-                                                                                                                                                   summarise(`win %` = mean(`high seed win`) * 100)), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
+                                                                                                                                                   summarise(`win %` = round(mean(`high seed win`) * 100,2))), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
     }
   })
   
@@ -414,7 +414,7 @@ server <- function(input, output, session) {
                         Year >= input$year_2[1],
                         Year <= input$year_2[2])%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-                      summarise(winningScore = round(mean(`winning score`),2), losingScore = round(mean(`losing score`),2), avgDiff = round(mean(Difference),2)))
+                      summarise(Games = n(), winningScore = round(mean(`winning score`),2), losingScore = round(mean(`losing score`),2), avgDiff = round(mean(Difference),2)))
     }
     else{
       Big_Dance_Seeds %>%
@@ -477,7 +477,7 @@ server <- function(input, output, session) {
                         Year <= input$year_4[2],
                         `round name` == input$round)%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-                      summarise(winningScore = mean(`winning score`), losingScore = mean(`losing score`), avgDiff = mean(Difference)))
+                      summarise(Games = n(), winningScore = round(mean(`winning score`),2), losingScore = round(mean(`losing score`),2), avgDiff = round(mean(Difference),2)))
     }
     else{
       Big_Dance_Seeds %>%
