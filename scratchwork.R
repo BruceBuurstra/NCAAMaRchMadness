@@ -57,3 +57,23 @@ scratch3 <- Big_Dance_Seeds %>%
 
 win_probs <- scratch3%>%
   pull(prob)
+
+
+team_names <- c(Big_Dance_Seeds$`high seed team`, Big_Dance_Seeds$`low seed team`)
+View(team_names)
+teams <- as.data.frame(team_names)
+
+teams <- as.data.frame(distinct(teams, team_names))
+
+install.packages("xlsx")
+library(xlsx)
+
+getwd()
+
+write.xlsx(teams, file = "teams.xlsx", sheetName = "Sheet1", 
+           col.names = TRUE, row.names = TRUE, append = FALSE)
+
+
+conferences <- merge(Big_Dance_Seeds, teams, by = "high seed team", all.y = TRUE)
+
+                    
