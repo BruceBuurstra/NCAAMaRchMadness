@@ -201,28 +201,7 @@ ui <- fluidPage(
                         tabPanel("Spread Comparison Between Conferences", fluid = TRUE,
                                  
                                  column(6,
-                                        br(),
-                                        h4("Differences Between NCAA Divisions"),
-                                        h5(p(
-                                          "The NCAA rules regarding eligibility of student athletes, scholarships, transfers, time commitments, etc. can be quite complex.  This is intended only as a general primer.  For more information please visit the ",
-                                          a("NCAA.",
-                                            href = "http://www.ncaa.org/about/frequently-asked-questions-about-ncaa"))),
-                                        h5(p("There are three divisions in the NCAA.  They differ in their makeup, in terms of which types of schools choose to participate in which division, but the most significant differences between the divisions concern athletic scholarships."
-                                        )),
-                                        h5(p(
-                                          "Put most simply schools that compete in Division I and Division II are allowed to offer athletic scholarships.  Division III schools are not.  The number of scholarships available differ by gender, with limits imposed by the NCAA.  For men’s  swimming and diving (taken together) Division I schools are allowed to offer a total of 9.9 full scholarships, whereas Division II schools can only offer 8.1 full scholarships.  For women’s swimming and diving the limits are 14 and 8.1 respectively.  These scholarships can be split into partials, with multiple student athletes receiving a portion of a full scholarship.  How scholarships are doled out is usually up to the coach. Coaches might attempt to recruit a few high powered athletes by offering them full scholarships, and give less to others, or they might distribute the scholarship portions more evenly.  In swimming Division I is generally faster than Division II, which in turn is faster than Division III, at least at the faster end.  Performance differences between the divisions can be explored by event using the plot at left."
-                                        )),
-                                        h5(p(
-                                          "While upper limits on scholarships are imposed by the NCAA, actual scholarships available also depend on the financial circumstances of the school and the swimming/diving program.  Schools may be allowed to offer more scholarships than they can afford."
-                                        )),
-                                        h5(p(
-                                          "Schools can also choose not to offer athletic scholarships, either in a particular sport, or across the board.   The eight Ivy League schools for example compete in Division I but as a policy do not offer any athletic scholarships."
-                                        )),
-                                        h5(p(
-                                          "Regarding time commitments, Division I and II teams are permitted by the NCAA to practice out of season.  Division III teams may only practice during the season.  In all cases seasons are dined by NCAA rules, with strict limits for what is and isn’t in-season.  All divisions are bound by the “20-hour” rule, where athletes are only permitted to practice for 20 hours a week during the season.  In reality athletes practice often practice much more, especially in ",
-                                          a("Division I.",
-                                            href = "https://www.businessinsider.com/college-student-athletes-spend-40-hours-a-week-practicing-2015-1"))
-                                        ))),
+                                              )),
                         
                         tabPanel("Spread Comparisons Between Seeds/Conferences", fluid = TRUE,
                                  titlePanel("Division I School Types"),
