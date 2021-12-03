@@ -7,11 +7,19 @@ library(tidyr)
 library(shinycssloaders)
 library(shinythemes)
 library(gt)
+library(readxl)
 
 #Import Data
 Big_Dance_CSV <- read.csv("Big_Dance_CSV.csv")
+teams <- read_excel("teams.xlsx")
 
 #Clean Data
+
+conference <- left_join(Big_Dance_Seeds, teams)
+conferences <- left_join(conference, teams, by= c("low seed team" = "high seed team"))
+conferences <- conferences%>%
+  rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
+
 Big_Dance_Seeds <- Big_Dance_CSV %>%
   rename(Seed_1 = Seed.1, Team_1 = Team.1, Score_1 = Score.1)%>%
   mutate("high seed" = case_when(Seed < Seed_1 ~ Seed,
@@ -109,6 +117,7 @@ ui <- fluidPage(
                         )
                       )
              ),
+             navbarMenu("Team/Conference Statistics", icon = icon("chart-bar"),
              # Team Statistics Panel
              tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Team Statistics"),
@@ -125,18 +134,8 @@ ui <- fluidPage(
                         column(6,
                                checkboxGroupInput(inputId = "RoundSelect",
                                                   label = "Select Round:",
-                                                  choices = c("Round of 64",
-                                                              "Round of 32",
-                                                              "Sweet 16",
-                                                              "Elite 8",
-                                                              "Final 4",
-                                                              "Championship"),
-                                                  selected = c("Round of 64",
-                                                               "Round of 32",
-                                                               "Sweet 16",
-                                                               "Elite 8",
-                                                               "Final 4",
-                                                               "Championship"))
+                                                  choices = unique(conferences$`round name`),
+                                                  selected = unique(conferences$`round name`))
                         )
                       ),
                       hr(),
@@ -146,13 +145,37 @@ ui <- fluidPage(
                                hr(),
                                tableOutput("SchoolHistory2")
                         ),
-                        column(6,
-                               dataTableOutput(outputId = "SchoolCompStats"),
-                               # helpText("For more information on school types and US News rankings please see More > About > School Types & Rankings")
-                        )
                       )  
              ),
-             
+             #Conference Statistics Panel
+             tabPanel("Conference Statistics", fluid = TRUE, icon = icon("bolt"),
+                      titlePanel("Conference Statistics"),
+                      fluidRow(
+                        column(6,
+                               selectizeInput(inputId = "conferenceSelect",
+                                              label = "Select Conference (Max 2)",
+                                              choices = sort(c(conferences$`High Seed Conference`, Big_Dance_Seeds$`Low Seed Conference`)),
+                                              multiple = TRUE,
+                                              options = list(maxItems = 2, placeholder = 'Enter Conference',
+                                                             onInitialize = I('function() { this.setValue(""); }'))
+                               ),
+                        ),
+                        column(6,
+                               checkboxGroupInput(inputId = "RoundSelect2",
+                                                  label = "Select Round:",
+                                                  choices = unique(conferences$`round name`),
+                                                  selected = unique(conferences$`round name`))
+                        )
+                      ),
+                      hr(),
+                      fluidRow(
+                        column(12,
+                               tableOutput(outputId = "conferenceHistory1"),
+                               hr(),
+                               tableOutput("conferenceHistory2")
+                        ),
+                      )  
+             )),
              navbarMenu("Spread Comparisons", icon = icon("chart-bar"),
                         tabPanel("Spread Comparision Between Seeds", fluid = TRUE,
                                  tags$style(button_color_css),
@@ -199,10 +222,45 @@ ui <- fluidPage(
                                  )
                         ),
                         tabPanel("Spread Comparison Between Conferences", fluid = TRUE,
-                                 
-                                 column(6,
-                                              )),
-                        
+                                 tags$style(button_color_css),
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     
+                                     titlePanel("Desired Conferences"),
+                                     fluidRow(column(8,
+                                                     selectInput(inputId = "conference1",
+                                                                 label = "Team Conference:",
+                                                                 choices = sort(c(conferences$`High Seed Conference`,conferences$`Low Seed Conference`))),
+                                                     hr(),
+                                                     selectInput(inputId = "conference2", 
+                                                                 label = "Opponent Conference:",
+                                                                 choices = sort(c(conferences$`High Seed Conference`,conferences$`Low Seed Conference`)))
+                                                     
+                                     ),
+                                     ),
+                                     hr(),
+                                     sliderInput(inputId = "year_3",
+                                                 label = "Select Year Range",
+                                                 min = 1985,
+                                                 max = 2021,
+                                                 value = c(1985, 2021),
+                                                 width = "220px"),
+                                     hr(),
+                                   ),
+                                   mainPanel(
+                                     fluidRow(
+                                       column(12,
+                                       )),
+                                     hr(),
+                                     br(),
+                                     fluidRow((dataTableOutput(outputId = "conferencesTable"))),
+                                     hr(),
+                                     br(),
+                                     hr(),
+                                     br()
+                                   )
+                                 )
+                        ),
                         tabPanel("Spread Comparisons Between Seeds/Conferences", fluid = TRUE,
                                  titlePanel("Division I School Types"),
                                  sidebarLayout(
@@ -525,6 +583,17 @@ server <- function(input, output, session) {
     }
   })
   
+  output$conferencesTable <- renderDataTable({req(input$conference1)
+    req(input$conference2)
+    conferences%>%
+    filter(`Low Seed Conference` %in% input$conference1 & `High Seed Conference` %in% input$conference2 | 
+             `High Seed Conference` %in% input$conference1 & `Low Seed Conference` %in% input$conference2,
+           Year >= input$year_3[1],
+           Year <= input$year_3[2])%>%
+    mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+    group_by(`high seed win`)%>%
+    summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2))
+  })
   
   #tables for team comparisons
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
@@ -550,8 +619,8 @@ server <- function(input, output, session) {
                 "Championships Won" = mean(Championship) * n(),
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
-                "Average Points Scored" = mean(PF),
-                "Average Points Allowed" = mean(PA)) %>% 
+                "Average Points Scored" = round(mean(PF),2),
+                "Average Points Allowed" = round(mean(PA),2)) %>% 
       mutate("Team" = input$SchoolSelectA[1]) %>% 
       select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt()
@@ -579,14 +648,75 @@ server <- function(input, output, session) {
                 "Championships Won" = mean(Championship) * n(),
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
-                "Average Points Scored" = mean(PF),
-                "Average Points Allowed" = mean(PA)) %>%
+                "Average Points Scored" = round(mean(PF),2),
+                "Average Points Allowed" = round(mean(PA),2)) %>%
       mutate("Team" = input$SchoolSelectA[2]) %>% 
       select(Team, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt() %>% 
       tab_header(title = md("Historical Record"))
   })
-  #Program Finder
+
+  #tables for conference comparisons
+  
+  output$conferenceHistory1 <- renderTable({req(input$conferenceSelect[1])
+    req(input$RoundSelect2)
+    conferences %>% filter(`High Seed Conference` == input$conferenceSelect[1] | `Low Seed Conference` == input$conferenceSelect[1], `round name` %in% input$RoundSelect2) %>% 
+      mutate("Win" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[1] & `low seed score` > `high seed score`) ~ 1,
+                               (`High Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[1] & `low seed score` < `high seed score`) ~ 0),
+             "Championship" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score` & Round == 6) | (`Low Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score` & Round == 6) ~ 1,
+                                        TRUE ~ 0),
+             "Champion" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score` & Round == 5) | (`Low Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score` & Round == 5) ~ 1,
+                                    TRUE ~ 0),
+             "Final Four" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score` & Round == 4) | (`Low Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score` & Round == 4) ~ 1,
+                                      TRUE ~ 0),
+             "PF" = case_when(`High Seed Conference` == input$conferenceSelect[1] ~ `high seed score`,
+                              `Low Seed Conference` == input$conferenceSelect[1] ~ `low seed score`),
+             "PA" = case_when(`High Seed Conference` == input$conferenceSelect[1] ~ `low seed score`,
+                              `Low Seed Conference` == input$conferenceSelect[1] ~ `high seed score`)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                "Championships Won" = mean(Championship) * n(),
+                "Championships Made" = mean(Champion) * n(),
+                "Final Fours" = mean(`Final Four`) * n(),
+                "Average Points Scored" = round(mean(PF),2),
+                "Average Points Allowed" = round(mean(PA),2)) %>% 
+      mutate("Conference" = input$conferenceSelect[1]) %>% 
+      select(Conference, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      gt()
+  })
+  
+  output$conferenceHistory2 <- renderTable({req(input$conferenceSelect[2])
+    req(input$RoundSelect2)
+    conferences %>% filter(`High Seed Conference` == input$conferenceSelect[2] | `Low Seed Conference` == input$conferenceSelect[2], `round name` %in% input$RoundSelect2) %>% 
+      mutate("Win" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[2] & `low seed score` > `high seed score`) ~ 1,
+                               (`High Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[2] & `low seed score` < `high seed score`) ~ 0),
+             "Championship" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score` & Round == 6) | (`Low Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score` & Round == 6) ~ 1,
+                                        TRUE ~ 0),
+             "Champion" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score` & Round == 5) | (`Low Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score` & Round == 5) ~ 1,
+                                    TRUE ~ 0),
+             "Final Four" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score` & Round == 4) | (`Low Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score` & Round == 4) ~ 1,
+                                      TRUE ~ 0),
+             "PF" = case_when(`High Seed Conference` == input$conferenceSelect[2] ~ `high seed score`,
+                              `Low Seed Conference` == input$conferenceSelect[2] ~ `low seed score`),
+             "PA" = case_when(`High Seed Conference` == input$conferenceSelect[2] ~ `low seed score`,
+                              `Low Seed Conference` == input$conferenceSelect[2] ~ `high seed score`)) %>% 
+      summarise("Games Played" = n(),
+                "win%" = mean(Win),
+                "# of wins" = `Games Played` * `win%`,
+                "# of losses" = `Games Played` - `# of wins`,
+                "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                "Championships Won" = mean(Championship) * n(),
+                "Championships Made" = mean(Champion) * n(),
+                "Final Fours" = mean(`Final Four`) * n(),
+                "Average Points Scored" = round(mean(PF),2),
+                "Average Points Allowed" = round(mean(PA),2)) %>% 
+      mutate("Conference" = input$conferenceSelect[2]) %>% 
+      select(Conference, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      gt()
+  })
   
   
   # BigTop100_finder <- reactive({
@@ -756,17 +886,6 @@ server <- function(input, output, session) {
   # })
   # 
   # 
-  # output$SchoolCompStats<-DT::renderDataTable({
-  #   if(input$TuitionType == "Yes"){
-  #     DT::datatable(unique(BigTop100_SchoolComp()[,c("Team", "Type", "Y2019", "Tuition_In", "Enrollment", "Public")]),
-  #                   colnames = c("US News Ranking" = "Y2019", "Tuition" = "Tuition_In"),
-  #                   rownames = FALSE,
-  #                   options = list(order = list(0, 'asc'),
-  #                                  columnDefs = list(list(className = "dt-center", targets = 1:5)),
-  #                                  dom = 't'
-  # 
-  #                   ))
-  #   }
   #   else if(input$TuitionType == "No"){
   #     DT::datatable(unique(BigTop100_SchoolComp()[,c("Team", "Type", "Y2019", "Tuition_Out", "Enrollment", "Public")]),
   #                   colnames = c("US News Ranking" = "Y2019", "Tuition" = "Tuition_Out"),
