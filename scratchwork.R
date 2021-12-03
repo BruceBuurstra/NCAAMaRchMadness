@@ -73,7 +73,15 @@ getwd()
 write.xlsx(teams, file = "teams.xlsx", sheetName = "Sheet1", 
            col.names = TRUE, row.names = TRUE, append = FALSE)
 
+teams$`high seed team`
+Big_Dance_Seeds$`high seed team`
 
-conferences <- merge(Big_Dance_Seeds, teams, by = "high seed team", all.y = TRUE)
+Big_Dance_Teams <- Big_Dance_Seeds %>%
+  select(`high seed team`:`low seed score`)
+library(dplyr)
+conference <- left_join(Big_Dance_Seeds, teams)
+conferences <- left_join(conference, teams, by= c("low seed team" = "high seed team"))
+conferences <- conferences%>%
+  rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
 
-                    
+conferences$`High Seed Conference`[2]
