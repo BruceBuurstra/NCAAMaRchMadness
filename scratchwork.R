@@ -42,7 +42,7 @@ scratch3 <- Big_Dance_Seeds %>%
   na.omit()%>%
   group_by(`high seed`, `low seed`)%>%
   summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
-  select(`high seed`, `low seed`,`win %`, wins, games)%>%
+  select(`high seed`, `low seed`,`win %`, wins, games) %>%
   mutate(prob = case_when(`high seed`==`low seed` ~.5,
                           TRUE ~ `win %`),
          new_wins = case_when(wins == 0 ~ wins +2,
@@ -52,8 +52,20 @@ scratch3 <- Big_Dance_Seeds %>%
                                wins == games ~ games +4L,
                                TRUE ~ games),
          new_prob = case_when(`high seed`==`low seed` ~.5,
-                              TRUE ~ new_wins/new_games))%>%
-  select(`high seed`, `low seed`,new_prob)
+                              TRUE ~ new_wins/new_games),
+         seed_diff = `low seed` - `high seed`) %>%
+  select(`high seed`, `low seed`, new_prob, seed_diff)
+
+
 
 win_probs <- scratch3%>%
   pull(prob)
+
+ggplot(data = scratch3, mapping = aes(x = seed_diff, y = new_prob)) +
+  geom_point() +
+  stat_smooth(method = lm)
+summary(lm(scratch3$new_prob ~ scratch3$seed_diff))
+# 0.481681 + 0.027568
+
+tibble
+              
