@@ -66,6 +66,4 @@ ggplot(data = scratch3, mapping = aes(x = seed_diff, y = new_prob)) +
   stat_smooth(method = lm)
 summary(lm(scratch3$new_prob ~ scratch3$seed_diff))
 # 0.481681 + 0.027568
-
-tibble
               
