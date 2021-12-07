@@ -61,14 +61,13 @@ scratch3 <- Big_Dance_Seeds %>%
 win_probs <- scratch3%>%
   pull(prob)
 
-<<<<<<< HEAD
+
 ggplot(data = scratch3, mapping = aes(x = seed_diff, y = new_prob)) +
   geom_point() +
   stat_smooth(method = lm)
 summary(lm(scratch3$new_prob ~ scratch3$seed_diff))
 # 0.481681 + 0.027568
               
-=======
 
 team_names <- c(Big_Dance_Seeds$`high seed team`, Big_Dance_Seeds$`low seed team`)
 View(team_names)
@@ -96,4 +95,4 @@ conferences <- conferences%>%
   rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
 
 conferences$`High Seed Conference`[2]
->>>>>>> 39bbdb664e4a002a0bb15663f493609f0b05202f
+
