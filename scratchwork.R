@@ -85,3 +85,22 @@ conferences <- conferences%>%
   rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
 
 conferences$`High Seed Conference`[2]
+
+
+
+View(conferences%>%
+  filter( `High Seed Conference` == "Big Ten" & `Low Seed Conference` == "SEC")%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+  group_by(`high seed win`)%>%
+  summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2)))
+
+conf <- "Big Ten"
+View(conferences%>%
+       filter( `High Seed Conference` == "SEC" & `Low Seed Conference` %in% conf)%>%
+       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+       group_by(`high seed win`)%>%
+       mutate("Team" = paste(conf, " Score"))%>%
+       summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), Team = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2)))
+
+View(conferences%>%
+    filter(`High Seed Conference` == "SEC" & `Low Seed Conference` == "Big Ten"))
