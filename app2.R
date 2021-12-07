@@ -745,6 +745,28 @@ server <- function(input, output, session) {
     }
   })
   
+  Team_Probability <- reactive({
+    Big_Dance_Seeds %>%
+      na.omit()%>%
+      group_by(`high seed`, `low seed`)%>%
+      summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
+      select(`high seed`, `low seed`,`win %`, wins, games) %>%
+      mutate(prob = case_when(`high seed`==`low seed` ~.5,
+                              TRUE ~ `win %`),
+             new_wins = case_when(wins == 0 ~ wins +2,
+                                  wins == games ~ wins +2,
+                                  TRUE ~ wins), 
+             new_games = case_when(wins == 0 ~ games +4L,
+                                   wins == games ~ games +4L,
+                                   TRUE ~ games),
+             new_prob = case_when(`high seed`==`low seed` ~.5,
+                                  TRUE ~ new_wins/new_games)) %>%
+      filter(`high seed` == case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
+                                      as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8),
+             `low seed` == case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                                     as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8)) %>% ungroup() %>% select(new_prob)
+  })
+  
   # BigTop100_finder <- reactive({
   #   req(input$DivisionFinder)
   #   req(input$RegionFinder)
