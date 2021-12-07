@@ -325,9 +325,7 @@ ui <- fluidPage(
                                      hr(),
                                      br(),
                                      fluidRow((plotOutput(outputId = "seedsSpreadHist2"))),
-                                     hr(),
-                                     br(),
-                                     fluidRow((dataTableOutput(outputId = "moviestable2")))
+                                     hr()
                                    )
                                  )
                         )
@@ -365,11 +363,8 @@ ui <- fluidPage(
                           fluidRow(textOutput(outputId = "ProbabilityShow")),
                           hr(),
                           br(),
-                          br(),
                           fluidRow(textOutput(outputId = "RunRandom")),
-                          hr(),
-                          br(),
-                          fluidRow((dataTableOutput(outputId = "moviestable3")))
+                          hr()
                         )
                       )
              ),
