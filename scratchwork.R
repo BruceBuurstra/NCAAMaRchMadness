@@ -96,3 +96,70 @@ conferences <- conferences%>%
 
 conferences$`High Seed Conference`[2]
 
+View(conferences%>%
+  filter( `High Seed Conference` == "Big Ten" & `Low Seed Conference` == "SEC")%>%
+  mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+  group_by(`high seed win`)%>%
+  summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2)))
+
+conf <- "Big Ten"
+View(conferences%>%
+       filter( `High Seed Conference` == "SEC" & `Low Seed Conference` %in% conf|
+                 `High Seed Conference` == conf & `Low Seed Conference` == "SEC"))
+
+View(conferences%>%
+    filter(`High Seed Conference` == "SEC" & `Low Seed Conference` == conf |
+             `High Seed Conference` == conf & `Low Seed Conference` == "SEC")%>%
+      mutate("Conf Win" = case_when(`High Seed Conference` == conf & `high seed win` == 1 ~ 1,
+                                    `Low Seed Conference` == conf & `high seed win` == 0 ~ 1,
+                                    TRUE ~ 0),
+             "Conf Score" = case_when(`High Seed Conference` == conf & `high seed win` == 1 ~ `winning score`,
+                                      `Low Seed Conference` == conf & `high seed win` == 0 ~ `winning score`,
+                                      TRUE ~ `losing score`),
+             "Non Conf Score" = case_when(`High Seed Conference` == conf & `high seed win` == 1 ~ `losing score`,
+                                      `Low Seed Conference` == conf & `high seed win` == 0 ~ `losing score`,
+                                      TRUE ~ `winning score`))%>%
+      mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+      group_by(`Conf Win`)%>%
+      summarise(Games = n(), ConfScore = round(mean(`Conf Score`),2), nonConfScore = round(mean(`Non Conf Score`),2), avgDiff = round(mean(Difference),2)))
+
+
+conferences%>%
+  filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+           `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2)%>%
+  mutate("Conf Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
+                                `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
+                                TRUE ~ 0L))%>%
+           summarise(`win %` = round(mean(`Conf Win`) * 100,2))
+
+View(Big_Dance_Seeds %>% filter(`high seed` == 1 | `low seed` == 1) %>% 
+  mutate("Win" = case_when((`high seed` == 1 & `high seed score` > `low seed score`) | (`low seed` == 1 & `low seed score` > `high seed score`) ~ 1,
+                           (`high seed` == 1 & `high seed score` < `low seed score`) | (`low seed` == 1 & `low seed score` < `high seed score`) ~ 0),
+         "Championship" = case_when((`high seed` == 1 & `high seed score` > `low seed score` & Round == 6) | (`low seed` == 1 & `high seed score` < `low seed score` & Round == 6) ~ 1,
+                                    TRUE ~ 0),
+         "Champion" = case_when((`high seed` == 1 & `high seed score` > `low seed score` & Round == 5) | (`low seed` == 1 & `high seed score` < `low seed score` & Round == 5) ~ 1,
+                                TRUE ~ 0),
+         "Final Four" = case_when((`high seed` == 1 & `high seed score` > `low seed score` & Round == 4) | (`low seed` == 1 & `high seed score` < `low seed score` & Round == 4) ~ 1,
+                                  TRUE ~ 0),
+         "PF" = case_when(`high seed` == 1 ~ `high seed score`,
+                          `low seed` == 1 ~ `low seed score`),
+         "PA" = case_when(`high seed` == 1 ~ `low seed score`,
+                          `low seed` == 1 ~ `high seed score`)) %>% 
+  summarise("Games Played" = n(),
+            "win%" = mean(Win),
+            "# of wins" = `Games Played` * `win%`,
+            "# of losses" = `Games Played` - `# of wins`,
+            "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+            "Championships Won" = mean(Championship) * n(),
+            "Championships Made" = mean(Champion) * n(),
+            "Final Fours" = mean(`Final Four`) * n(),
+            "Average Points Scored" = round(mean(PF),2),
+            "Average Points Allowed" = round(mean(PA),2)) %>% 
+  select(`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`))
+
+Upsets <- Big_Dance_Seeds%>%
+  filter(`high seed` != `low seed`, `round name` %in% c("Round of 64"))%>%
+  mutate(Upset = case_when(`low seed score` > `high seed score` ~ 1,
+                           TRUE ~ 0))%>%
+  group_by(Year)%>%
+  summarise(Upset = mean(Upset))
