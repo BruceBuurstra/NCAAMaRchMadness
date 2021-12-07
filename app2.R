@@ -15,10 +15,7 @@ teams <- read_excel("teams.xlsx")
 
 #Clean Data
 
-conference <- left_join(Big_Dance_Seeds, teams)
-conferences <- left_join(conference, teams, by= c("low seed team" = "high seed team"))
-conferences <- conferences%>%
-  rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
+
 
 Big_Dance_Seeds <- Big_Dance_CSV %>%
   rename(Seed_1 = Seed.1, Team_1 = Team.1, Score_1 = Score.1)%>%
@@ -53,6 +50,11 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
                                   Round == 5 ~ "Final 4",
                                   Round == 6 ~ "Championship")) %>% 
   select(-Team, -Team_1, -Score, -Score_1, -Seed, -Seed_1)
+
+conference <- left_join(Big_Dance_Seeds, teams)
+conferences <- left_join(conference, teams, by= c("low seed team" = "high seed team"))
+conferences <- conferences%>%
+  rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
 
 
 button_color_css <- "

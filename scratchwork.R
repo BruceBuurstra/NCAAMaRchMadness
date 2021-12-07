@@ -61,9 +61,39 @@ scratch3 <- Big_Dance_Seeds %>%
 win_probs <- scratch3%>%
   pull(prob)
 
+<<<<<<< HEAD
 ggplot(data = scratch3, mapping = aes(x = seed_diff, y = new_prob)) +
   geom_point() +
   stat_smooth(method = lm)
 summary(lm(scratch3$new_prob ~ scratch3$seed_diff))
 # 0.481681 + 0.027568
               
+=======
+
+team_names <- c(Big_Dance_Seeds$`high seed team`, Big_Dance_Seeds$`low seed team`)
+View(team_names)
+teams <- as.data.frame(team_names)
+
+teams <- as.data.frame(distinct(teams, team_names))
+
+install.packages("xlsx")
+library(xlsx)
+
+getwd()
+
+write.xlsx(teams, file = "teams.xlsx", sheetName = "Sheet1", 
+           col.names = TRUE, row.names = TRUE, append = FALSE)
+
+teams$`high seed team`
+Big_Dance_Seeds$`high seed team`
+
+Big_Dance_Teams <- Big_Dance_Seeds %>%
+  select(`high seed team`:`low seed score`)
+library(dplyr)
+conference <- left_join(Big_Dance_Seeds, teams)
+conferences <- left_join(conference, teams, by= c("low seed team" = "high seed team"))
+conferences <- conferences%>%
+  rename("High Seed Conference" = Conference.x, "Low Seed Conference" = Conference.y)
+
+conferences$`High Seed Conference`[2]
+>>>>>>> 39bbdb664e4a002a0bb15663f493609f0b05202f
