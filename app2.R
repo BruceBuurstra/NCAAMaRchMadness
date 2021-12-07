@@ -59,7 +59,6 @@ button_color_css <- "
 /* Change the background color of the update button
 to blue. */
 background: DodgerBlue;
-
 /* Change the text size to 15 pixels. */
 font-size: 15px;
 }"
@@ -335,54 +334,45 @@ ui <- fluidPage(
              ),
              # Simulator Tab
              tabPanel("Simulator", icon = icon("random"),
-                 titlePanel("Tournament Simulator"),
-                 sidebarLayout(
-                   sidebarPanel(
-                     
-                     titlePanel("Desired Matchup"),
-                     fluidRow(column(8,
-                                     selectInput(inputId = "seed1_8",
-                                                 label = "Team Seed:",
-                                                 choices = c(1:16),
-                                                 selected = 1),
-                                     hr(),
-                                     selectInput(inputId = "seed2_8", 
-                                                 label = "Opponent Seed:",
-                                                 choices = c(1:16), 
-                                                 selected = 1)
-                                     
-                     ),
-                     ),
-                     hr(),
-                     selectInput(inputId = "round5",
-                                 label = "Round:",
-                                 choices = Big_Dance_Seeds$`round name`,
-                                 selected = Big_Dance_Seeds$`round name`[0]),
-                     hr(),
-                     sliderInput(inputId = "year_8",
-                                 label = "Select Year Range",
-                                 min = 1985,
-                                 max = 2021,
-                                 value = c(1985, 2021),
-                                 width = "220px"),
-                     hr(),
-                   ),
-                   mainPanel(
-                     fluidRow(
-                       column(12,
-                       )),
-                     hr(),
-                     br(),
-                     fluidRow((dataTableOutput(outputId = "seedsRoundTwable"))),
-                     hr(),
-                     br(),
-                     fluidRow((plotOutput(outputId = "seedsvvSpreadHist3"))),
-                     hr(),
-                     br(),
-                     fluidRow((dataTableOutput(outputId = "movvviestable3")))
-                   )
-                 )
+              titlePanel("Tournament Simulator"),
+                      sidebarLayout(
+                        sidebarPanel(
+                          
+                          titlePanel("Desired Matchup"),
+                          fluidRow(column(8,
+                                          selectInput(inputId = "seed1_8",
+                                                      label = "Team Seed:",
+                                                      choices = c(1:16),
+                                                      selected = 1),
+                                          hr(),
+                                          selectInput(inputId = "seed2_8", 
+                                                      label = "Opponent Seed:",
+                                                      choices = c(1:16), 
+                                                      selected = 1)
+                          ),
+                          ),
+                          hr(),
+                          br(),
+                          actionButton(inputId = "Randomize", label = "Simulate Matchup"),                          
+                          hr(),
                         ),
+                        mainPanel(
+                          fluidRow(
+                            column(12,
+                            )),
+                          hr(),
+                          br(),
+                          fluidRow(textOutput(outputId = "ProbabilityShow")),
+                          hr(),
+                          br(),
+                          br(),
+                          fluidRow(textOutput(outputId = "RunRandom")),
+                          hr(),
+                          br(),
+                          fluidRow((dataTableOutput(outputId = "moviestable3")))
+                        )
+                      )
+             ),
              tabPanel("Upset Insight", icon = icon("eraser"),
                       titlePanel("Upsets"),
                       sidebarLayout(
@@ -460,9 +450,9 @@ server <- function(input, output, session) {
   )
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
-                                    filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
-                                    select(Year, `round name`, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
-
+                                      filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
+                                      select(Year, `round name`, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
+  
   output$text <- renderText({
     if (input$seed1 == input$seed2){
       "These teams are the same seed."
@@ -702,7 +692,7 @@ server <- function(input, output, session) {
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0),
              "Tournaments" = case_when((`high seed team` == input$SchoolSelectA[1] & Round == 1 | `low seed team` == input$SchoolSelectA[1] & Round == 1) ~ 1,
-                                                  TRUE ~ 0),
+                                       TRUE ~ 0),
              "Championship" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 6) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 6) ~ 1,
                                         TRUE ~ 0),
              "Champion" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 5) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 5) ~ 1,
@@ -761,7 +751,7 @@ server <- function(input, output, session) {
       gt() %>% 
       tab_header(title = md("Historical Record"))
   })
-
+  
   #tables for conference comparisons
   
   output$conferenceHistory1 <- renderTable({req(input$conferenceSelect[1])
@@ -915,10 +905,70 @@ server <- function(input, output, session) {
       summarise(`Upset%` = round(mean(Upset)*100, 2))), "% of the time between ", input$year_5[1], " and ", input$year_5[2], sep = "")
   })
   
+  # Simulator tab output
+  
+  output$ProbabilityShow <- renderText({
+    if(input$seed1_8 == input$seed2_8) {
+      "These teams are the same seed, so this will be a 50/50 matchup"
+    }
+    else {
+      paste("The ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
+                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8), " seed will have a ", round(Team_Probability() * 100, 2),
+            "% chance of beating the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                                                  as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8), " seed", sep = "")
+    }
+  })
+  observeEvent(input$Randomize,{
+    Number <- runif(1, min = 0, max = 1)
+    output$RunRandom <- renderText({ if(input$seed1_8 == input$seed2_8) {
+      "These are the same seed, we can't really help you here"
+      }
+      else if(Number < as.numeric(Team_Probability())) {
+      paste("The ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
+                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
+                              TRUE ~ input$seed1_8), " seed will win against the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                                                                                              as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
+                                                                                              TRUE ~ input$seed2_8), " seed")
+    } 
+    else {
+      paste("The ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                              as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
+                              TRUE ~ input$seed2_8), " seed will win against the ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
+                                                                                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
+                                                                                              TRUE ~ input$seed1_8), " seed")
+    }  
+                                        
+      })
+  })
+  
+  Team_Probability <- reactive({
+    Big_Dance_Seeds %>%
+      na.omit()%>%
+      group_by(`high seed`, `low seed`)%>%
+      summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
+      select(`high seed`, `low seed`,`win %`, wins, games) %>%
+      mutate(prob = case_when(`high seed`==`low seed` ~.5,
+                              TRUE ~ `win %`),
+             new_wins = case_when(wins == 0 ~ wins +2,
+                                  wins == games ~ wins +2,
+                                  TRUE ~ wins), 
+             new_games = case_when(wins == 0 ~ games +4L,
+                                   wins == games ~ games +4L,
+                                   TRUE ~ games),
+             new_prob = case_when(`high seed`==`low seed` ~.5,
+                                  TRUE ~ new_wins/new_games)) %>%
+      filter(`high seed` == case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
+                                      as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
+                                      TRUE ~ input$seed1_8),
+             `low seed` == case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                                     as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
+                                     TRUE ~ input$seed2_8)) %>% ungroup() %>% select(new_prob)
+  })
   
   
   session$onSessionEnded(stopApp)
 }
 # Run the application
 shinyApp(ui = ui, server = server)
+
 
