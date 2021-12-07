@@ -731,6 +731,19 @@ server <- function(input, output, session) {
       gt()
   })
   
+  # Simulator tab output
+  
+  output$ProbabilityShow <- renderText({
+    if(input$seed1_8 == input$seed2_8) {
+      "These teams are the same seed, so this will be a 50/50 matchup"
+    }
+    else {
+      paste("The ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
+                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8), " seed will have a ", Team_Probability(),
+            "% chance of beating the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                                                  as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8), " seed", sep = "")
+    }
+  })
   
   # BigTop100_finder <- reactive({
   #   req(input$DivisionFinder)
