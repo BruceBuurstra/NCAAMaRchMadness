@@ -116,7 +116,30 @@ ui <- fluidPage(
                         )
                       )
              ),
-             navbarMenu("Team/Conference Statistics", icon = icon("chart-bar"),
+             navbarMenu("Seed/Team/Conference Statistics", icon = icon("chart-bar"),
+                        tabPanel("Seed Statistics", fluid = TRUE, icon = icon("list-ol"),
+                                 titlePanel("Seed Statistics"),
+                                 fluidRow(
+                                   column(6,
+                                          selectInput(inputId = "seed_2", 
+                                                      label = "Seed:",
+                                                      choices = c(1:16), 
+                                                      selected = 1)
+                                          ),
+                                   column(6,
+                                          checkboxGroupInput(inputId = "RoundSelect",
+                                                             label = "Select Round:",
+                                                             choices = unique(conferences$`round name`),
+                                                             selected = unique(conferences$`round name`))
+                                   )
+                                 ),
+                                 hr(),
+                                 fluidRow(
+                                   column(6,
+                                          tableOutput(outputId = "seedHistory")
+                                   )
+                                 )
+             ),
              # Team Statistics Panel
              tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
                       titlePanel("Team Statistics"),
@@ -131,7 +154,7 @@ ui <- fluidPage(
                                ),
                         ),
                         column(6,
-                               checkboxGroupInput(inputId = "RoundSelect",
+                               checkboxGroupInput(inputId = "RoundSelect2",
                                                   label = "Select Round:",
                                                   choices = unique(conferences$`round name`),
                                                   selected = unique(conferences$`round name`))
@@ -160,7 +183,7 @@ ui <- fluidPage(
                                ),
                         ),
                         column(6,
-                               checkboxGroupInput(inputId = "RoundSelect2",
+                               checkboxGroupInput(inputId = "RoundSelect3",
                                                   label = "Select Round:",
                                                   choices = unique(conferences$`round name`),
                                                   selected = unique(conferences$`round name`))
@@ -215,10 +238,7 @@ ui <- fluidPage(
                                      fluidRow((dataTableOutput(outputId = "seedsTable"))),
                                      hr(),
                                      br(),
-                                     fluidRow((plotOutput(outputId = "seedsSpreadHist", brush = "plot_hover"))),
-                                     hr(),
-                                     br(),
-                                     fluidRow((dataTableOutput(outputId = "moviestable")))
+                                     fluidRow((plotOutput(outputId = "seedsSpreadHist"))),
                                    )
                                  )
                         ),
@@ -254,52 +274,12 @@ ui <- fluidPage(
                                        )),
                                      hr(),
                                      br(),
-                                     fluidRow((tableOutput(outputId = "conferencesTable1"))),
+                                     fluidRow((tableOutput(outputId = "conferencesTable"))),
                                      hr(),
-                                     fluidRow(textOutput(outputId = "conferencesText1")),
-                                     hr(),
-                                     br(),
-                                     fluidRow((tableOutput(outputId = "conferencesTable2"))),
-                                     hr(),
-                                     fluidRow(textOutput(outputId = "conferencesText2")),
+                                     fluidRow(textOutput(outputId = "conferenceText")),
                                      hr(),
                                      br(),
-                                     fluidRow(textOutput(outputId = "helpConferenceText")),
-                                     hr(),
-                                     br()
-                                   )
-                                 )
-                        ),
-                        tabPanel("Spread Comparisons Between Seeds/Conferences", fluid = TRUE,
-                                 titlePanel("Division I School Types"),
-                                 sidebarLayout(
-                                   sidebarPanel(
-                                     # Select which Gender(s) to plot
-                                     checkboxGroupInput(inputId = "GenderDI",
-                                                        label = "Select Gender(s):",
-                                                        choices = c("Male" = "M", "Female" = "F"),
-                                                        selected = "M"),
-                                     # Select which Region(s) to plot
-                                     checkboxGroupInput(inputId = "RegionDI",
-                                                        label = "Select Region:",
-                                                        choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
-                                                        selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
-                                     # Set Top X Rank
-                                     sliderInput(inputId = "RankDI",
-                                                 label = "Top Times Range:",
-                                                 min = 1, max = 3500,
-                                                 value = c(1,250)),
-                                     # Set school rank
-                                     sliderInput(inputId = "School_RankDI",
-                                                 label = "School Rank",
-                                                 min = 1,
-                                                 max = 250,
-                                                 value = c(1,250))
-                                   ),
-                                   mainPanel(
-                                     withSpinner(plotOutput(outputId = "barplotDI")),
-                                     textOutput(outputId = "description_DI")
-                                     #plotOutput(outputId = "scatterplotDI")
+                                     fluidRow((plotOutput(outputId = "conferenceSpreadHist")))
                                    )
                                  )
                         ),
@@ -345,42 +325,10 @@ ui <- fluidPage(
                                      fluidRow((dataTableOutput(outputId = "seedsRoundTable"))),
                                      hr(),
                                      br(),
-                                     fluidRow((plotOutput(outputId = "seedsSpreadHist2", brush = "plot_hover"))),
+                                     fluidRow((plotOutput(outputId = "seedsSpreadHist2"))),
                                      hr(),
                                      br(),
                                      fluidRow((dataTableOutput(outputId = "moviestable2")))
-                                   )
-                                 )
-                        ),
-                        tabPanel("Spread Comparisons by Seeds/Conferences per Round", fluid = TRUE,
-                                 titlePanel("Division III School Types"),
-                                 sidebarLayout(
-                                   sidebarPanel(
-                                     # Select which Gender(s) to plot
-                                     checkboxGroupInput(inputId = "GenderDIII",
-                                                        label = "Select Gender(s):",
-                                                        choices = c("Male" = "M", "Female" = "F"),
-                                                        selected = "M"),
-                                     # Select which Region(s) to plot
-                                     checkboxGroupInput(inputId = "RegionDIII",
-                                                        label = "Select Region:",
-                                                        choices = c("New England" = "NewEngland", "Mid Atlantic" = "MidAtlantic", "Mid West" = "MidWest", "South", "West", "South West" = "SouthWest", "Pacific", "Alaska", "Hawaii"),
-                                                        selected = c("NewEngland", "MidAtlantic", "MidWest", "South", "West", "SouthWest", "Pacific", "Alaska", "Hawaii")),
-                                     # Set Top X Rank
-                                     sliderInput(inputId = "RankDIII",
-                                                 label = "Top Times Range:",
-                                                 min = 1, max = 3500,
-                                                 value = c(1,250)),
-                                     # Set school rank
-                                     sliderInput(inputId = "School_RankDIII",
-                                                 label = "School Rank",
-                                                 min = 1,
-                                                 max = 250,
-                                                 value = c(1,250))
-                                   ),
-                                   mainPanel(
-                                     withSpinner(plotOutput(outputId = "barplotDIII")),
-                                     textOutput(outputId = "description_DIII")
                                    )
                                  )
                         )
@@ -425,18 +373,59 @@ ui <- fluidPage(
                        )),
                      hr(),
                      br(),
-                     fluidRow((dataTableOutput(outputId = "seedsRoundTeable"))),
+                     fluidRow((dataTableOutput(outputId = "seedsRoundTwable"))),
                      hr(),
                      br(),
-                     fluidRow((plotOutput(outputId = "seedsSpreadHist3", brush = "plot_hover"))),
+                     fluidRow((plotOutput(outputId = "seedsvvSpreadHist3"))),
                      hr(),
                      br(),
-                     fluidRow((dataTableOutput(outputId = "moviestable3")))
+                     fluidRow((dataTableOutput(outputId = "movvviestable3")))
                    )
                  )
+                        ),
+             tabPanel("Upset Insight", icon = icon("eraser"),
+                      titlePanel("Upsets"),
+                      sidebarLayout(
+                        sidebarPanel(
+                          
+                          titlePanel("Upsets"),
+                          fluidRow(column(8,
+                                          sliderInput(inputId = "year_5",
+                                                      label = "Select Year Range",
+                                                      min = 1985,
+                                                      max = 2021,
+                                                      value = c(1985, 2021),
+                                                      width = "220px"),
+                                          column(8,
+                                                 checkboxGroupInput(inputId = "RoundSelect4",
+                                                                    label = "Select Round:",
+                                                                    choices = unique(conferences$`round name`),
+                                                                    selected = unique(conferences$`round name`))
+                                          )
+                                          
+                          ),
+                          ),
+                          hr(),
+                        ),
+                        mainPanel(
+                          fluidRow(
+                            column(12,
+                            )),
+                          hr(),
+                          br(),
+                          fluidRow((tableOutput(outputId = "upsetsTable"))),
+                          hr(),
+                          br(),
+                          fluidRow(plotOutput(outputId = "upsetsHistogram")),
+                          hr(),
+                          br(),
+                          fluidRow((tableOutput(outputId = "upsetsText"))),
+                          hr(),
                         )
+                      )
              )
-  )
+             )
+)
 
 
 # Define server
@@ -444,15 +433,31 @@ server <- function(input, output, session) {
   
   #Data Table
   
-  output$matchups <- renderTable(Big_Dance_Seeds %>%
-                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
-                                            `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
-                                          Year >= input$year[1],
-                                          Year <= input$year[2])%>%
-                                   summarise(`# of games` = n(),
-                                             `win %` = mean(`high seed win`)) %>%
-                                   mutate("# of wins" = `win %` * `# of games`) %>% 
-                                   select(`# of wins`, `# of games`, `win %`))
+  output$matchups <- renderTable({
+    if (input$seed1 == input$seed2)
+    {
+      Big_Dance_Seeds %>%
+          filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
+                   `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
+                 Year >= input$year[1],
+                 Year <= input$year[2])%>%
+          summarise(`# of games` = n())%>%
+          select(`# of games`)
+    }
+    else
+    {
+      Big_Dance_Seeds %>%
+        filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | 
+                 `high seed` %in% input$seed1 & `low seed` %in% input$seed2,
+               Year >= input$year[1],
+               Year <= input$year[2])%>%
+        summarise(`# of games` = n(),
+                  `win %` = mean(`high seed win`)) %>%
+        mutate("# of wins" = as.integer(`win %` * `# of games`)) %>% 
+        select(`# of wins`, `# of games`, `win %`)
+    }
+  }
+  )
   
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
                                     filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
@@ -528,17 +533,7 @@ server <- function(input, output, session) {
         facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names), scales='free')
     }
   })
-  
-  output$moviestable <- renderDataTable({
-    brushedPoints(Big_Dance_Seeds %>%
-                    filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                             `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-                           Year >= input$year_2[1],
-                           Year <= input$year_2[2])%>%
-                    mutate(Difference = abs(`high seed score` - `low seed score`)), brush = input$plot_hover) %>%
-      select(`high seed team`, `low seed team`, Difference)
-  })
-  
+
   
   output$seedsRoundTable <- renderDataTable({
     if (input$seed1_4 == input$seed2_4){
@@ -592,42 +587,118 @@ server <- function(input, output, session) {
     }
   })
   
-  output$conferencesTable1 <- renderTable({req(input$conference1)
+  output$conferencesTable <- renderTable({req(input$conference1)
     req(input$conference2)
-    conferences%>%
-    filter(`Low Seed Conference` %in% input$conference1 & `High Seed Conference` %in% input$conference2,
-           Year >= input$year_3[1],
-           Year <= input$year_3[2])%>%
-    mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-    group_by(`high seed win`)%>%
-    summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2))
+    if(input$conference1 == input$conference2)
+    {
+      conferences%>%
+        filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+                 `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
+               Year >= input$year_3[1],
+               Year <= input$year_3[2])%>%
+        mutate("Conf Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1,
+                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1,
+                                      TRUE ~ 0),
+               "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
+                                        `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
+                                        TRUE ~ `losing score`),
+               "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
+                                            `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
+                                            TRUE ~ `winning score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        summarise(Games = n(), `Team Conference Score` = round(mean(`Conf Score`),2), `Opponent Conference Score` = round(mean(`Opp Conf Score`),2), `Average Difference` = round(mean(Difference),2))
+    }
+    else
+    {
+      conferences%>%
+        filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+               `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
+               Year >= input$year_3[1],
+               Year <= input$year_3[2])%>%
+        mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1,
+                                    `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1,
+                                    TRUE ~ 0),
+             "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
+                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
+                                      TRUE ~ `losing score`),
+             "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
+                                          `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
+                                          TRUE ~ `winning score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        group_by(`Team Conference Win`)%>%
+        summarise(Games = n(), `Team Conference Score` = round(mean(`Conf Score`),2), `Opponent Conference Score` = round(mean(`Opp Conf Score`),2), `Average Difference` = round(mean(Difference),2))
+    }
+   }
+   )
+    
+  output$conferenceText <- renderText({
+    req(input$conference1)
+    req(input$conference2)
+    if (input$conference1 == input$conference2){
+      "These are the same conferences."
+    }
+    else{
+      paste("The ", input$conference1 , " conference has beaten the ", input$conference2, " conference ", as.numeric(conferences%>%
+                                                                                                                       filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+                                                                                                                                `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
+                                                                                                                              Year >= input$year_3[1],
+                                                                                                                              Year <= input$year_3[2])%>%
+                                                                                                                       mutate("Conf Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
+                                                                                                                                                     `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
+                                                                                                                                                     TRUE ~ 0L))%>%
+                                                                                                                       summarise(`win %` = round(mean(`Conf Win`) * 100,2))), "% of the time  between ", input$year_3[1], " and ", input$year_3[2], sep = "")
+    }
   })
   
-  output$conferencesText1 <- renderText({req(input$conference1)
+  output$conferenceSpreadHist <- renderPlot({
+    req(input$conference1)
     req(input$conference2)
-    paste("This first datatable shows data for when the lower seeded team is in the ", input$conference1, " conference and the higher seeded team is in the ", input$conference2, " conference.")
-  })
-  
-  output$conferencesTable2 <- renderTable({req(input$conference1)
-    req(input$conference2)
-    conferences%>%
-      filter(`High Seed Conference` %in% input$conference1 & `Low Seed Conference` %in% input$conference2,
-             Year >= input$year_3[1],
-             Year <= input$year_3[2])%>%
-      mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-      group_by(`high seed win`)%>%
-      summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2))
-  })
-  
-  output$conferencesText2 <- renderText({req(input$conference1)
-    req(input$conference2)
-    paste("This second datatable shows data for when the lower seeded team is in the ", input$conference2, " conference and the higher seeded team is in the ", input$conference1, " conference.")
+    if (input$conference1 == input$conference2){
+      conferences%>%
+        filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+                 `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
+               Year >= input$year_3[1],
+               Year <= input$year_3[2])%>%
+        mutate("Conf Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1,
+                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1,
+                                      TRUE ~ 0),
+               "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
+                                        `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
+                                        TRUE ~ `losing score`),
+               "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
+                                            `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
+                                            TRUE ~ `winning score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        ggplot(aes(Difference))+
+        geom_histogram()
+    }
+    else{
+      win_names = c(`0` = "Opponent Conference Win", `1` = "Team Conference Win")
+      conferences%>%
+        filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+                 `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
+               Year >= input$year_3[1],
+               Year <= input$year_3[2])%>%
+        mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1,
+                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1,
+                                      TRUE ~ 0),
+               "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
+                                        `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
+                                        TRUE ~ `losing score`),
+               "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
+                                            `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
+                                            TRUE ~ `winning score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        ggplot(aes(Difference))+
+        geom_histogram()+
+        facet_wrap(~ `Team Conference Win`, ncol = 1, labeller = as_labeller(win_names))
+    }
   })
   
   #tables for team comparisons
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
-    req(input$RoundSelect)
-    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1], `round name` %in% input$RoundSelect) %>% 
+    req(input$RoundSelect2)
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1], `round name` %in% input$RoundSelect2) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[1] & `low seed score` < `high seed score`) ~ 0),
              "Tournaments" = case_when((`high seed team` == input$SchoolSelectA[1] & Round == 1 | `low seed team` == input$SchoolSelectA[1] & Round == 1) ~ 1,
@@ -658,8 +729,8 @@ server <- function(input, output, session) {
       gt()
   })
   output$SchoolHistory2 <- renderTable({req(input$SchoolSelectA[2])
-    req(input$RoundSelect)
-    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[2] | `low seed team` == input$SchoolSelectA[2], `round name` %in% input$RoundSelect) %>% 
+    req(input$RoundSelect2)
+    Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[2] | `low seed team` == input$SchoolSelectA[2], `round name` %in% input$RoundSelect2) %>% 
       mutate("Win" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` > `high seed score`) ~ 1,
                                (`high seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score`) | (`low seed team` == input$SchoolSelectA[2] & `low seed score` < `high seed score`) ~ 0),
              "Tournaments" = case_when((`high seed team` == input$SchoolSelectA[2] & Round == 1 | `low seed team` == input$SchoolSelectA[2] & Round == 1) ~ 1,
@@ -694,8 +765,8 @@ server <- function(input, output, session) {
   #tables for conference comparisons
   
   output$conferenceHistory1 <- renderTable({req(input$conferenceSelect[1])
-    req(input$RoundSelect2)
-    conferences %>% filter(`High Seed Conference` == input$conferenceSelect[1] | `Low Seed Conference` == input$conferenceSelect[1], `round name` %in% input$RoundSelect2) %>% 
+    req(input$RoundSelect3)
+    conferences %>% filter(`High Seed Conference` == input$conferenceSelect[1] | `Low Seed Conference` == input$conferenceSelect[1], `round name` %in% input$RoundSelect3) %>% 
       mutate("Win" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[1] & `low seed score` > `high seed score`) ~ 1,
                                (`High Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[1] & `low seed score` < `high seed score`) ~ 0),
              "Tournaments" = case_when((`High Seed Conference` == input$conferenceSelect[1] & Round == 1 | `Low Seed Conference` == input$conferenceSelect[1] & Round == 1) ~ 1,
@@ -727,8 +798,8 @@ server <- function(input, output, session) {
   })
   
   output$conferenceHistory2 <- renderTable({req(input$conferenceSelect[2])
-    req(input$RoundSelect2)
-    conferences %>% filter(`High Seed Conference` == input$conferenceSelect[2] | `Low Seed Conference` == input$conferenceSelect[2], `round name` %in% input$RoundSelect2) %>% 
+    req(input$RoundSelect3)
+    conferences %>% filter(`High Seed Conference` == input$conferenceSelect[2] | `Low Seed Conference` == input$conferenceSelect[2], `round name` %in% input$RoundSelect3) %>% 
       mutate("Win" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[2] & `low seed score` > `high seed score`) ~ 1,
                                (`High Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score`) | (`Low Seed Conference` == input$conferenceSelect[2] & `low seed score` < `high seed score`) ~ 0),
              "Tournaments" = case_when((`High Seed Conference` == input$conferenceSelect[2] & Round == 1 | `Low Seed Conference` == input$conferenceSelect[2] & Round == 1) ~ 1,
@@ -766,6 +837,85 @@ server <- function(input, output, session) {
   output$helpConferenceText2 <- renderText({
     "Note: The Conferences do not reflect Teams that have changed Conferences in the past and only represent Teams and their current Conferences."
   })
+  
+  #Seed History Table
+  output$seedHistory <- renderTable({
+    req(input$seed_2)
+    req(input$RoundSelect)
+    Big_Dance_Seeds %>% filter(`high seed` == input$seed_2 | `low seed` == input$seed_2, `round name` %in% input$RoundSelect) %>% 
+         mutate("Win" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score`) | (`low seed` == input$seed_2 & `low seed score` > `high seed score`) ~ 1,
+                                  (`high seed` == input$seed_2 & `high seed score` < `low seed score`) | (`low seed` == input$seed_2 & `low seed score` < `high seed score`) ~ 0),
+                "Championship" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score` & Round == 6) | (`low seed` == input$seed_2 & `high seed score` < `low seed score` & Round == 6) ~ 1,
+                                           TRUE ~ 0),
+                "Champion" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score` & Round == 5) | (`low seed` == input$seed_2 & `high seed score` < `low seed score` & Round == 5) ~ 1,
+                                       TRUE ~ 0),
+                "Final Four" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score` & Round == 4) | (`low seed` == input$seed_2 & `high seed score` < `low seed score` & Round == 4) ~ 1,
+                                         TRUE ~ 0),
+                "PF" = case_when(`high seed` == input$seed_2 ~ `high seed score`,
+                                 `low seed` == input$seed_2 ~ `low seed score`),
+                "PA" = case_when(`high seed` == input$seed_2 ~ `low seed score`,
+                                 `low seed` == input$seed_2 ~ `high seed score`)) %>% 
+         summarise("Games Played" = n(),
+                   "win%" = mean(Win),
+                   "# of wins" = `Games Played` * `win%`,
+                   "# of losses" = `Games Played` - `# of wins`,
+                   "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
+                   "Championships Won" = mean(Championship) * n(),
+                   "Championships Made" = mean(Champion) * n(),
+                   "Final Fours" = mean(`Final Four`) * n(),
+                   "Average Points Scored" = round(mean(PF),2),
+                   "Average Points Allowed" = round(mean(PA),2)) %>% 
+          mutate("Seed" = input$seed_2)%>%
+          select(Seed, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`)%>%
+          gt()
+  })
+  
+  output$upsetsTable <- renderTable({
+    req(input$RoundSelect4)
+    Big_Dance_Seeds%>%
+      filter(`high seed` != `low seed`, 
+             `round name` %in% input$RoundSelect4,
+             Year >= input$year_5[1],
+             Year <= input$year_5[2])%>%
+      mutate(Upset = case_when(`low seed score` > `high seed score` ~ 1,
+                               TRUE ~ 0))%>%
+      group_by(Year)%>%
+      summarise(Upset = sum(Upset))%>%
+      summarise(Min = min(Upset), `1Q` = summary(Upset)[["1st Qu."]] , Median = median(Upset),`3Q` = summary(Upset)[["3rd Qu."]], Median = median(Upset), Max = max(Upset), Mean = mean(Upset), StandDev = sd(Upset))
+  })
+  
+  output$upsetsHistogram <- renderPlot({
+    req(input$RoundSelect4)
+    Big_Dance_Seeds%>%
+      filter(`high seed` != `low seed`, 
+             `round name` %in% input$RoundSelect4,
+             Year >= input$year_5[1],
+             Year <= input$year_5[2])%>%
+      mutate(Upset = case_when(`low seed score` > `high seed score` ~ 1,
+                               TRUE ~ 0))%>%
+      group_by(Year)%>%
+      summarise(Upset = sum(Upset))%>%
+      ggplot(aes(x = Upset))+
+      labs(title = "Total Upsets per Year based off Rounds Selected")+
+      geom_histogram(binwidth = 1)
+  })
+  
+  output$upsetsText <- renderText({
+    req(input$RoundSelect4)
+    paste("For this round, or these rounds, there has been an upset ", as.numeric(
+    Big_Dance_Seeds%>%
+      filter(`high seed` != `low seed`, 
+             `round name` %in% input$RoundSelect4,
+             Year >= input$year_5[1],
+             Year <= input$year_5[2])%>%
+      mutate(Upset = case_when(`low seed score` > `high seed score` ~ 1,
+                               TRUE ~ 0))%>%
+      group_by(Year)%>%
+      summarise(Upset = mean(Upset))%>%
+      summarise(`Upset%` = round(mean(Upset)*100, 2))), "% of the time between ", input$year_5[1], " and ", input$year_5[2], sep = "")
+  })
+  
+  
   
   session$onSessionEnded(stopApp)
 }
