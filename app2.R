@@ -48,6 +48,7 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
                                   Round == 4 ~ "Elite 8",
                                   Round == 5 ~ "Final 4",
                                   Round == 6 ~ "Championship")) %>% 
+        na.omit()%>%
   select(-Team, -Team_1, -Score, -Score_1, -Seed, -Seed_1)
 
 conference <- left_join(Big_Dance_Seeds, teams)
@@ -806,10 +807,12 @@ server <- function(input, output, session) {
              "PF" = case_when(`High Seed Conference` == input$conferenceSelect[1] ~ `high seed score`,
                               `Low Seed Conference` == input$conferenceSelect[1] ~ `low seed score`),
              "PA" = case_when(`High Seed Conference` == input$conferenceSelect[1] ~ `low seed score`,
-                              `Low Seed Conference` == input$conferenceSelect[1] ~ `high seed score`)) %>% 
+                              `Low Seed Conference` == input$conferenceSelect[1] ~ `high seed score`),
+             "Same Conference" = case_when(`High Seed Conference` == input$conferenceSelect[1] & `Low Seed Conference` == input$conferenceSelect[1] ~ 1,
+                                           TRUE ~ 0)) %>% 
       summarise("Tournament Appearances" = sum(Tournaments),
-                "Games Played" = n(),
-                "win%" = mean(Win),
+                "Games Played" = n() + sum(`Same Conference`),
+                "win%" = sum(Win)/`Games Played`,
                 "# of wins" = `Games Played` * `win%`,
                 "# of losses" = `Games Played` - `# of wins`,
                 "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
@@ -845,10 +848,12 @@ server <- function(input, output, session) {
              "PF" = case_when(`High Seed Conference` == input$conferenceSelect[2] ~ `high seed score`,
                               `Low Seed Conference` == input$conferenceSelect[2] ~ `low seed score`),
              "PA" = case_when(`High Seed Conference` == input$conferenceSelect[2] ~ `low seed score`,
-                              `Low Seed Conference` == input$conferenceSelect[2] ~ `high seed score`)) %>% 
+                              `Low Seed Conference` == input$conferenceSelect[2] ~ `high seed score`),
+             "Same Conference" = case_when(`High Seed Conference` == input$conferenceSelect[2] & `Low Seed Conference` == input$conferenceSelect[2] ~ 1,
+                                     TRUE ~ 0)) %>% 
       summarise("Tournament Appearances" = sum(Tournaments),
-                "Games Played" = n(),
-                "win%" = mean(Win),
+                "Games Played" = n()+ sum(`Same Conference`),
+                "win%" = sum(Win)/`Games Played`,
                 "# of wins" = `Games Played` * `win%`,
                 "# of losses" = `Games Played` - `# of wins`,
                 "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
@@ -892,10 +897,12 @@ server <- function(input, output, session) {
                 "PF" = case_when(`high seed` == input$seed_2 ~ `high seed score`,
                                  `low seed` == input$seed_2 ~ `low seed score`),
                 "PA" = case_when(`high seed` == input$seed_2 ~ `low seed score`,
-                                 `low seed` == input$seed_2 ~ `high seed score`)) %>% 
-         summarise("Games Played" = n(),
-                   "win%" = mean(Win),
-                   "# of wins" = `Games Played` * `win%`,
+                                 `low seed` == input$seed_2 ~ `high seed score`),
+                "Same Seed" = case_when(`high seed` == input$seed_2 & `low seed` == input$seed_2 ~ 1,
+                                        TRUE ~ 0)) %>% 
+         summarise("Games Played" = n() + sum(`Same Seed`),
+                   "win%" = sum(Win)/`Games Played`,
+                   "# of wins" = sum(Win),
                    "# of losses" = `Games Played` - `# of wins`,
                    "Record" = paste(`# of wins`, "-", `# of losses`, sep = ""),
                    "Championships Won" = mean(Championship) * n(),
