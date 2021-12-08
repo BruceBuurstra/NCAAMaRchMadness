@@ -366,6 +366,8 @@ ui <- fluidPage(
                           fluidRow(textOutput(outputId = "ProbabilityShow")),
                           hr(),
                           br(),
+                          br(),
+                          br(),
                           fluidRow(textOutput(outputId = "RunRandom")),
                           hr()
                         )
@@ -455,14 +457,14 @@ server <- function(input, output, session) {
     if (input$seed1 == input$seed2){
       "These teams are the same seed."
     }
+    else if (is.na(Seed_Wins())) {
+      "These seeds have never played before"
+    }
     else{
       paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
                               as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
-                                                                                                                                               as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed ", as.numeric(
-                                                                                                                                                 Big_Dance_Seeds %>%
-                                                                                                                                                   filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
-                                                                                                                                                   na.omit() %>% 
-                                                                                                                                                   summarise(`win %` = round(mean(`high seed win`) * 100,2))), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
+                                                                                                                                               as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed ",
+                                                                                                                                                 Seed_Wins(), "% of the time between ", input$year[1], " and ", input$year[2], sep = "")
     }
   })
   
@@ -971,6 +973,7 @@ server <- function(input, output, session) {
                                                   as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8), " seed", sep = "")
     }
   })
+  
   observeEvent(input$Randomize,{
     Number <- runif(1, min = 0, max = 1)
     output$RunRandom <- renderText({ if(input$seed1_8 == input$seed2_8) {
@@ -979,7 +982,7 @@ server <- function(input, output, session) {
       else if(Number < as.numeric(Team_Probability())) {
       paste("The ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
                               as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
-                              TRUE ~ input$seed1_8), " seed will win against the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
+                              TRUE ~ input$seed1_8), " seed wins against the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
                                                                                               as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
                                                                                               TRUE ~ input$seed2_8), " seed")
     } 
@@ -994,11 +997,12 @@ server <- function(input, output, session) {
       })
   })
   
+  # Probability Reactive
   Team_Probability <- reactive({
     Big_Dance_Seeds %>%
       na.omit()%>%
       group_by(`high seed`, `low seed`)%>%
-      summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
+      summarise(`win %` = mean(`high seed win`), wins = as.numeric(sum(`high seed win`)), games = n()) %>%
       select(`high seed`, `low seed`,`win %`, wins, games) %>%
       mutate(prob = case_when(`high seed`==`low seed` ~.5,
                               TRUE ~ `win %`),
@@ -1017,7 +1021,13 @@ server <- function(input, output, session) {
                                      as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
                                      TRUE ~ input$seed2_8)) %>% ungroup() %>% select(new_prob)
   })
-  
+  # Reactive to get win % between seeds
+  Seed_Wins <- reactive({
+    Big_Dance_Seeds %>%
+      filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>%
+      na.omit() %>% 
+      summarise(`win %` = round(mean(`high seed win`) * 100,2))
+  })
   
   session$onSessionEnded(stopApp)
 }
