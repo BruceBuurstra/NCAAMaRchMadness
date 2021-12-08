@@ -366,6 +366,8 @@ ui <- fluidPage(
                           fluidRow(textOutput(outputId = "ProbabilityShow")),
                           hr(),
                           br(),
+                          br(),
+                          br(),
                           fluidRow(textOutput(outputId = "RunRandom")),
                           hr()
                         )
@@ -1000,7 +1002,7 @@ server <- function(input, output, session) {
     Big_Dance_Seeds %>%
       na.omit()%>%
       group_by(`high seed`, `low seed`)%>%
-      summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
+      summarise(`win %` = mean(`high seed win`), wins = as.numeric(sum(`high seed win`)), games = n()) %>%
       select(`high seed`, `low seed`,`win %`, wins, games) %>%
       mutate(prob = case_when(`high seed`==`low seed` ~.5,
                               TRUE ~ `win %`),
