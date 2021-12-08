@@ -373,12 +373,12 @@ ui <- fluidPage(
                         )
                       )
              ),
-             tabPanel("Upset Insight", icon = icon("eraser"),
+             tabPanel("Upsets", icon = icon("eraser"),
                       titlePanel("Upsets"),
                       sidebarLayout(
                         sidebarPanel(
                           
-                          titlePanel("Upsets"),
+                          titlePanel("Select Year and Rounds:"),
                           fluidRow(column(8,
                                           sliderInput(inputId = "year_5",
                                                       label = "Select Year Range",
