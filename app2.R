@@ -39,8 +39,8 @@ Big_Dance_Seeds <- Big_Dance_CSV %>%
                                      Score_1 > Score ~ Score_1),
          "losing score" = case_when(Score < Score_1 ~ Score,
                                     Score_1 < Score ~ Score_1),
-         "high seed win" = case_when(`high seed score` > `low seed score` ~ 1,
-                                     `high seed score` < `low seed score` ~ 0),
+         "high seed win" = case_when(`high seed score` > `low seed score` ~ 1L,
+                                     `high seed score` < `low seed score` ~ 0L),
          "round name" = case_when(Round == 1 ~ "Round of 64",
                                   Round == 2 ~ "Round of 32",
                                   Round == 3 ~ "Sweet 16",
@@ -137,7 +137,10 @@ ui <- fluidPage(
                                    column(6,
                                           tableOutput(outputId = "seedHistory")
                                    )
-                                 )
+                                 ),
+                                 hr(),
+                                 br(),
+                                 fluidRow(textOutput(outputId = "seedsText"))
              ),
              # Team Statistics Panel
              tabPanel("Team Statistics", fluid = TRUE, icon = icon("bars"),
@@ -234,7 +237,7 @@ ui <- fluidPage(
                                        )),
                                      hr(),
                                      br(),
-                                     fluidRow((dataTableOutput(outputId = "seedsTable"))),
+                                     fluidRow((tableOutput(outputId = "seedsTable"))),
                                      hr(),
                                      br(),
                                      fluidRow((plotOutput(outputId = "seedsSpreadHist"))),
@@ -321,7 +324,7 @@ ui <- fluidPage(
                                        )),
                                      hr(),
                                      br(),
-                                     fluidRow((dataTableOutput(outputId = "seedsRoundTable"))),
+                                     fluidRow((tableOutput(outputId = "seedsRoundTable"))),
                                      hr(),
                                      br(),
                                      fluidRow((plotOutput(outputId = "seedsSpreadHist2"))),
@@ -468,26 +471,27 @@ server <- function(input, output, session) {
                             as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
                                                                                                                                              as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " Seed Wins")
   })
-  output$seedsTable <- renderDataTable({
+  output$seedsTable <- renderTable({
     if (input$seed1_2 == input$seed2_2){
-      DT::datatable(data = Big_Dance_Seeds %>%
+      Big_Dance_Seeds %>%
                       filter(
                         `low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
                           `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
                         Year >= input$year_2[1],
                         Year <= input$year_2[2])%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-                      summarise(Games = n(), winningScore = round(mean(`winning score`),2), losingScore = round(mean(`losing score`),2), avgDiff = round(mean(Difference),2)))
+                      summarise(Games = n(), `Winning Score` = round(mean(`winning score`),2), `Losing Score` = round(mean(`losing score`),2), `Average Difference` = round(mean(Difference),2))
     }
     else{
       Big_Dance_Seeds %>%
+        rename(`High Seed Win` = `high seed win`)%>%
         filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
                  `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
                Year >= input$year_2[1],
                Year <= input$year_2[2])%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-        group_by(`high seed win`)%>%
-        summarise(Games = n(), highSeedScore = round(mean(`high seed score`),2), lowSeedScore = round(mean(`low seed score`),2), avgDiff = round(mean(Difference),2))
+        group_by(`High Seed Win`)%>%
+        summarise(Games = n(), `High Seed Score` = round(mean(`high seed score`),2), `Low Seed Score` = round(mean(`low seed score`),2), `Average Difference` = round(mean(Difference),2))
     }
   })
   
@@ -500,7 +504,9 @@ server <- function(input, output, session) {
                Year <= input$year_2[2])%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
-        geom_histogram()
+        geom_histogram(fill="dodgerblue3")+
+        theme_minimal()+
+        theme(text = element_text(size=16))
     }
     else{
       win_names = c(`0` = paste(case_when(as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
@@ -514,15 +520,20 @@ server <- function(input, output, session) {
                Year <= input$year_2[2])%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
-        geom_histogram()+
-        facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names), scales='free')
+        geom_histogram(fill="dodgerblue3")+
+        facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names), scales='free')+
+        theme_minimal()+
+        theme(text = element_text(size=16))
     }
   })
 
   
-  output$seedsRoundTable <- renderDataTable({
+  output$seedsRoundTable <- renderTable({
+    req(input$seed1_4)
+    req(input$seed2_4)
+    req(input$round)
     if (input$seed1_4 == input$seed2_4){
-      DT::datatable(data = Big_Dance_Seeds %>%
+      Big_Dance_Seeds %>%
                       filter(
                         `low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
                           `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
@@ -530,18 +541,19 @@ server <- function(input, output, session) {
                         Year <= input$year_4[2],
                         `round name` == input$round)%>%
                       mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-                      summarise(Games = n(), winningScore = round(mean(`winning score`),2), losingScore = round(mean(`losing score`),2), avgDiff = round(mean(Difference),2)))
+                      summarise(Games = n(), `Winning Score` = round(mean(`winning score`),2), `Losing Score` = round(mean(`losing score`),2), `Average Difference` = round(mean(Difference),2))
     }
     else{
       Big_Dance_Seeds %>%
+        rename("High Seed Win" = `high seed win`)%>%
         filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
                  `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
                Year >= input$year_4[1],
                Year <= input$year_4[2],
                `round name` == input$round)%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
-        group_by(`high seed win`)%>%
-        summarise(Games = n(), highSeedScore = mean(`high seed score`), lowSeedScore = mean(`low seed score`), avgDiff = mean(Difference))
+        group_by(`High Seed Win`)%>%
+        summarise(Games = n(), `High Seed Score` = mean(`high seed score`), `Low Seed Score` = mean(`low seed score`), `Average Difference` = mean(Difference))
     }
   })
   
@@ -555,10 +567,15 @@ server <- function(input, output, session) {
                `round name` == input$round)%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
-        geom_histogram()
+        geom_histogram(fill="dodgerblue3")+
+        theme_minimal()+
+        theme(text = element_text(size=16))
     }
     else{
-      win_names = c(`0` = "Low Seed Win", `1` = "High Seed Win")
+      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ as.numeric(input$seed1_4),
+                                          as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ as.numeric(input$seed2_4)), " Seed Wins"), 
+                    `1` = paste(case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ as.numeric(input$seed1_4),
+                                          as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ as.numeric(input$seed2_4)), " Seed Wins"))
       Big_Dance_Seeds %>%
         filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
                  `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
@@ -567,8 +584,10 @@ server <- function(input, output, session) {
                `round name` == input$round)%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
-        geom_histogram()+
-        facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names))
+        geom_histogram(fill="dodgerblue3")+
+        facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names))+
+        theme_minimal()+
+        theme(text = element_text(size=16))
     }
   })
   
@@ -600,9 +619,9 @@ server <- function(input, output, session) {
                `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
                Year >= input$year_3[1],
                Year <= input$year_3[2])%>%
-        mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1,
-                                    `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1,
-                                    TRUE ~ 0),
+        mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
+                                    `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
+                                    TRUE ~ 0L),
              "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
                                       `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
                                       TRUE ~ `losing score`),
@@ -655,7 +674,9 @@ server <- function(input, output, session) {
                                             TRUE ~ `winning score`))%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
-        geom_histogram()
+        geom_histogram(fill = "dodgerblue3")+
+        theme_minimal()+
+        theme(text = element_text(size=16))
     }
     else{
       win_names = c(`0` = "Opponent Conference Win", `1` = "Team Conference Win")
@@ -664,9 +685,9 @@ server <- function(input, output, session) {
                  `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
                Year >= input$year_3[1],
                Year <= input$year_3[2])%>%
-        mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1,
-                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1,
-                                      TRUE ~ 0),
+        mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
+                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
+                                      TRUE ~ 0L),
                "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
                                         `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
                                         TRUE ~ `losing score`),
@@ -675,8 +696,10 @@ server <- function(input, output, session) {
                                             TRUE ~ `winning score`))%>%
         mutate(Difference = abs(`high seed score` - `low seed score`))%>%
         ggplot(aes(Difference))+
-        geom_histogram()+
-        facet_wrap(~ `Team Conference Win`, ncol = 1, labeller = as_labeller(win_names))
+        geom_histogram(fill = "dodgerblue3")+
+        facet_wrap(~ `Team Conference Win`, ncol = 1, labeller = as_labeller(win_names))+
+        theme_minimal()+
+        theme(text = element_text(size=16))
     }
   })
   
@@ -694,6 +717,10 @@ server <- function(input, output, session) {
                                     TRUE ~ 0),
              "Final Four" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 4) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 4) ~ 1,
                                       TRUE ~ 0),
+             "Elite 8" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 3) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 3) ~ 1,
+                                      TRUE ~ 0),
+             "Sweet 16" = case_when((`high seed team` == input$SchoolSelectA[1] & `high seed score` > `low seed score` & Round == 2) | (`low seed team` == input$SchoolSelectA[1] & `high seed score` < `low seed score` & Round == 2) ~ 1,
+                                      TRUE ~ 0),
              "PF" = case_when(`high seed team` == input$SchoolSelectA[1] ~ `high seed score`,
                               `low seed team` == input$SchoolSelectA[1] ~ `low seed score`),
              "PA" = case_when(`high seed team` == input$SchoolSelectA[1] ~ `low seed score`,
@@ -707,10 +734,12 @@ server <- function(input, output, session) {
                 "Championships Won" = mean(Championship) * n(),
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
+                "Elite 8s" = mean(`Elite 8`) * n(),
+                "Sweet 16s" = mean(`Sweet 16`) * n(),
                 "Average Points Scored" = round(mean(PF),2),
                 "Average Points Allowed" = round(mean(PA),2)) %>% 
       mutate("Team" = input$SchoolSelectA[1]) %>% 
-      select(Team, `Tournament Appearances`, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      select(Team, `Tournament Appearances`, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`,  `Elite 8s`, `Sweet 16s`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt()
   })
   output$SchoolHistory2 <- renderTable({req(input$SchoolSelectA[2])
@@ -726,6 +755,10 @@ server <- function(input, output, session) {
                                     TRUE ~ 0),
              "Final Four" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 4) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 4) ~ 1,
                                       TRUE ~ 0),
+             "Elite 8" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 3) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 3) ~ 1,
+                                      TRUE ~ 0),
+             "Sweet 16" = case_when((`high seed team` == input$SchoolSelectA[2] & `high seed score` > `low seed score` & Round == 2) | (`low seed team` == input$SchoolSelectA[2] & `high seed score` < `low seed score` & Round == 2) ~ 1,
+                                      TRUE ~ 0),
              "PF" = case_when(`high seed team` == input$SchoolSelectA[2] ~ `high seed score`,
                               `low seed team` == input$SchoolSelectA[2] ~ `low seed score`),
              "PA" = case_when(`high seed team` == input$SchoolSelectA[2] ~ `low seed score`,
@@ -739,10 +772,12 @@ server <- function(input, output, session) {
                 "Championships Won" = mean(Championship) * n(),
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
+                "Elite 8s" = mean(`Elite 8`) * n(),
+                "Sweet 16s" = mean(`Sweet 16`) * n(),
                 "Average Points Scored" = round(mean(PF),2),
                 "Average Points Allowed" = round(mean(PA),2)) %>%
       mutate("Team" = input$SchoolSelectA[2]) %>% 
-      select(Team, `Tournament Appearances` ,`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      select(Team, `Tournament Appearances` ,`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Elite 8s`, `Sweet 16s`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt() %>% 
       tab_header(title = md("Historical Record"))
   })
@@ -762,6 +797,10 @@ server <- function(input, output, session) {
                                     TRUE ~ 0),
              "Final Four" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score` & Round == 4) | (`Low Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score` & Round == 4) ~ 1,
                                       TRUE ~ 0),
+             "Elite 8" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score` & Round == 3) | (`Low Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score` & Round == 3) ~ 1,
+                                      TRUE ~ 0),
+             "Sweet 16" = case_when((`High Seed Conference` == input$conferenceSelect[1] & `high seed score` > `low seed score` & Round == 2) | (`Low Seed Conference` == input$conferenceSelect[1] & `high seed score` < `low seed score` & Round == 2) ~ 1,
+                                   TRUE ~ 0),
              "PF" = case_when(`High Seed Conference` == input$conferenceSelect[1] ~ `high seed score`,
                               `Low Seed Conference` == input$conferenceSelect[1] ~ `low seed score`),
              "PA" = case_when(`High Seed Conference` == input$conferenceSelect[1] ~ `low seed score`,
@@ -775,10 +814,12 @@ server <- function(input, output, session) {
                 "Championships Won" = mean(Championship) * n(),
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
+                "Elite 8s" = mean(`Elite 8`) * n(),
+                "Sweet 16s" = mean(`Sweet 16`) * n(),
                 "Average Points Scored" = round(mean(PF),2),
                 "Average Points Allowed" = round(mean(PA),2)) %>% 
       mutate("Conference" = input$conferenceSelect[1]) %>% 
-      select(Conference, `Tournament Appearances` ,`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      select(Conference, `Tournament Appearances` ,`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Elite 8s`, `Sweet 16s`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt()
   })
   
@@ -795,6 +836,10 @@ server <- function(input, output, session) {
                                     TRUE ~ 0),
              "Final Four" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score` & Round == 4) | (`Low Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score` & Round == 4) ~ 1,
                                       TRUE ~ 0),
+             "Elite 8" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score` & Round == 3) | (`Low Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score` & Round == 3) ~ 1,
+                                      TRUE ~ 0),
+             "Sweet 16" = case_when((`High Seed Conference` == input$conferenceSelect[2] & `high seed score` > `low seed score` & Round == 2) | (`Low Seed Conference` == input$conferenceSelect[2] & `high seed score` < `low seed score` & Round == 2) ~ 1,
+                                      TRUE ~ 0),
              "PF" = case_when(`High Seed Conference` == input$conferenceSelect[2] ~ `high seed score`,
                               `Low Seed Conference` == input$conferenceSelect[2] ~ `low seed score`),
              "PA" = case_when(`High Seed Conference` == input$conferenceSelect[2] ~ `low seed score`,
@@ -808,10 +853,12 @@ server <- function(input, output, session) {
                 "Championships Won" = mean(Championship) * n(),
                 "Championships Made" = mean(Champion) * n(),
                 "Final Fours" = mean(`Final Four`) * n(),
+                "Elite 8s" = mean(`Elite 8`) * n(),
+                "Sweet 16s" = mean(`Sweet 16`) * n(),
                 "Average Points Scored" = round(mean(PF),2),
                 "Average Points Allowed" = round(mean(PA),2)) %>% 
       mutate("Conference" = input$conferenceSelect[2]) %>% 
-      select(Conference, `Tournament Appearances` ,`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`) %>% 
+      select(Conference, `Tournament Appearances` ,`Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Elite 8s`, `Sweet 16s`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt()
   })
   
@@ -836,6 +883,10 @@ server <- function(input, output, session) {
                                        TRUE ~ 0),
                 "Final Four" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score` & Round == 4) | (`low seed` == input$seed_2 & `high seed score` < `low seed score` & Round == 4) ~ 1,
                                          TRUE ~ 0),
+                "Elite 8" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score` & Round == 3) | (`low seed` == input$seed_2 & `high seed score` < `low seed score` & Round == 3) ~ 1,
+                                         TRUE ~ 0),
+                "Sweet 16" = case_when((`high seed` == input$seed_2 & `high seed score` > `low seed score` & Round == 2) | (`low seed` == input$seed_2 & `high seed score` < `low seed score` & Round == 2) ~ 1,
+                                         TRUE ~ 0),
                 "PF" = case_when(`high seed` == input$seed_2 ~ `high seed score`,
                                  `low seed` == input$seed_2 ~ `low seed score`),
                 "PA" = case_when(`high seed` == input$seed_2 ~ `low seed score`,
@@ -848,13 +899,18 @@ server <- function(input, output, session) {
                    "Championships Won" = mean(Championship) * n(),
                    "Championships Made" = mean(Champion) * n(),
                    "Final Fours" = mean(`Final Four`) * n(),
+                   "Elite 8s" = mean(`Elite 8`) * n(),
+                   "Sweet 16s" = mean(`Sweet 16`) * n(),
                    "Average Points Scored" = round(mean(PF),2),
                    "Average Points Allowed" = round(mean(PA),2)) %>% 
           mutate("Seed" = input$seed_2)%>%
-          select(Seed, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Average Points Scored`, `Average Points Allowed`)%>%
+          select(Seed, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`, `Elite 8s`, `Sweet 16s`, `Average Points Scored`, `Average Points Allowed`)%>%
           gt()
   })
   
+  output$seedsText <- renderText({
+    "Note: This data includes all 36 years for which there has been a March Madness tournament from 1985 to 2021"
+  })
   output$upsetsTable <- renderTable({
     req(input$RoundSelect4)
     Big_Dance_Seeds%>%
@@ -882,7 +938,9 @@ server <- function(input, output, session) {
       summarise(Upset = sum(Upset))%>%
       ggplot(aes(x = Upset))+
       labs(title = "Total Upsets per Year based off Rounds Selected")+
-      geom_histogram(binwidth = 1)
+      geom_histogram(binwidth = 1, fill = "dodgerblue3")+
+      theme_minimal()+
+      theme(text = element_text(size=16))
   })
   
   output$upsetsText <- renderText({
