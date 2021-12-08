@@ -172,8 +172,6 @@ Upsets <- Big_Dance_Seeds%>%
   summarise(Upset = mean(Upset))
 
 View(Big_Dance_Seeds%>%
-  filter(`high seed` == 5 & `low seed` == 12)%>%
-    group_by(Year)%>%
-    summarise(total = sum(`high seed win`==0)))
+  filter((`high seed` == 1 | `low seed` == 1) & Round == 6))
 
   
