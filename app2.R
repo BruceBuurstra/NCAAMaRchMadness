@@ -520,22 +520,18 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
     else{
-      req(nrow(Big_Dance_Seeds %>%
-                 filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
-                          `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
-                        Year >= input$year_2[1],
-                        Year <= input$year_2[2])%>%
-                 mutate(Difference = abs(`high seed score` - `low seed score`))) > 0)
-      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
-                                          as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"), 
-                    `1` = paste(case_when(as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
-                                          as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"))
-      Big_Dance_Seeds %>%
+      Dataset <- Big_Dance_Seeds %>%
         filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
                  `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
                Year >= input$year_2[1],
                Year <= input$year_2[2])%>%
-        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))
+      req(nrow(Dataset) > 0)
+      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
+                                          as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"), 
+                    `1` = paste(case_when(as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
+                                          as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"))
+      Dataset %>%
         ggplot(aes(Difference))+
         geom_histogram(fill="dodgerblue3")+
         facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names), scales='free')+
@@ -592,24 +588,19 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
     else{
-      req(nrow(Big_Dance_Seeds %>%
-                 filter(`low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
-                          `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
-                        Year >= input$year_4[1],
-                        Year <= input$year_4[2],
-                        `round name` == input$round)%>%
-                 mutate(Difference = abs(`high seed score` - `low seed score`))) > 0)
-      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_3) > as.numeric(input$seed2_3) ~ as.numeric(input$seed1_3),
-                                          as.numeric(input$seed1_3) < as.numeric(input$seed2_3) ~ as.numeric(input$seed2_3)), " Seed Wins"), 
-                    `1` = paste(case_when(as.numeric(input$seed1_3) < as.numeric(input$seed2_3) ~ as.numeric(input$seed1_3),
-                                          as.numeric(input$seed1_3) > as.numeric(input$seed2_3) ~ as.numeric(input$seed2_3)), " Seed Wins"))
-      Big_Dance_Seeds %>%
+      Dataset <- Big_Dance_Seeds %>%
         filter(`low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
                  `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
                Year >= input$year_4[1],
                Year <= input$year_4[2],
                `round name` == input$round)%>%
-        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))
+      req(nrow(Dataset) > 0)
+      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_3) > as.numeric(input$seed2_3) ~ as.numeric(input$seed1_3),
+                                          as.numeric(input$seed1_3) < as.numeric(input$seed2_3) ~ as.numeric(input$seed2_3)), " Seed Wins"), 
+                    `1` = paste(case_when(as.numeric(input$seed1_3) < as.numeric(input$seed2_3) ~ as.numeric(input$seed1_3),
+                                          as.numeric(input$seed1_3) > as.numeric(input$seed2_3) ~ as.numeric(input$seed2_3)), " Seed Wins"))
+      Dataset %>%
         ggplot(aes(Difference))+
         geom_histogram(fill="dodgerblue3")+
         facet_wrap(~ `high seed win`, ncol = 1, labeller = as_labeller(win_names))+
@@ -712,37 +703,24 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
     else{
-      req(nrow(conferences%>%
-                 filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
-                          `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
-                        Year >= input$year_3[1],
-                        Year <= input$year_3[2])%>%
-                 mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
-                                                          `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
-                                                          TRUE ~ 0L),
-                        "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
-                                                 `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
-                                                 TRUE ~ `losing score`),
-                        "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
-                                                     `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
-                                                     TRUE ~ `winning score`))%>%
-                 mutate(Difference = abs(`high seed score` - `low seed score`))) > 0)
-      win_names = c(`0` = "Opponent Conference Win", `1` = "Team Conference Win")
-      conferences%>%
+      Dataset <- conferences%>%
         filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
                  `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
                Year >= input$year_3[1],
                Year <= input$year_3[2])%>%
         mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
-                                      `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
-                                      TRUE ~ 0L),
+                                                 `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
+                                                 TRUE ~ 0L),
                "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
                                         `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
                                         TRUE ~ `losing score`),
                "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
                                             `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
                                             TRUE ~ `winning score`))%>%
-        mutate(Difference = abs(`high seed score` - `low seed score`))%>%
+        mutate(Difference = abs(`high seed score` - `low seed score`))
+      req(nrow(Dataset) > 0)
+      win_names = c(`0` = "Opponent Conference Win", `1` = "Team Conference Win")
+      Dataset %>%
         ggplot(aes(Difference))+
         geom_histogram(fill = "dodgerblue3")+
         facet_wrap(~ `Team Conference Win`, ncol = 1, labeller = as_labeller(win_names))+
