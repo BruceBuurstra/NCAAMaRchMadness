@@ -69,7 +69,7 @@ font-size: 15px;
 ui <- fluidPage( 
   useShinyjs(),
   #Navbar structure for UI
-  navbarPage("NCAA March Madness", theme = shinytheme("lumen"),
+  navbarPage("NCAA MaRch Madness", theme = shinytheme("lumen"),
              tabPanel("Matchup Finder", fluid = TRUE, icon = icon("basketball-ball"),
                       tags$style(button_color_css),
                       # Sidebar layout with a input and output definitions
