@@ -8,6 +8,7 @@ library(shinycssloaders)
 library(shinythemes)
 library(gt)
 library(readxl)
+library(shinyjs)
 
 #Import Data
 Big_Dance_CSV <- read.csv("Big_Dance_CSV.csv")
@@ -65,8 +66,8 @@ font-size: 15px;
 }"
 
 # Define UI
-ui <- fluidPage(
-  
+ui <- fluidPage( 
+  useShinyjs(),
   #Navbar structure for UI
   navbarPage("NCAA March Madness", theme = shinytheme("lumen"),
              tabPanel("Matchup Finder", fluid = TRUE, icon = icon("basketball-ball"),
@@ -343,7 +344,6 @@ ui <- fluidPage(
               titlePanel("Tournament Simulator"),
                       sidebarLayout(
                         sidebarPanel(
-                          
                           titlePanel("Desired Matchup"),
                           fluidRow(column(8,
                                           selectInput(inputId = "seed1_4",
@@ -1034,10 +1034,11 @@ server <- function(input, output, session) {
                                                   as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4), " seed", sep = "")
     }
   })
-  
+
   observeEvent(input$Randomize,{
     Number <- runif(1, min = 0, max = 1)
-    output$RunRandom <- renderText({ if(input$seed1_4 == input$seed2_4) {
+    output$RunRandom <- renderText("Simulating...")
+    delay(500, output$RunRandom <- renderText({ if(input$seed1_4 == input$seed2_4) {
       "These are the same seed, we can't really help you here"
       }
       else if(Number < as.numeric(Team_Probability())) {
@@ -1054,8 +1055,8 @@ server <- function(input, output, session) {
                                                                                               as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
                                                                                               TRUE ~ input$seed1_4), " seed")
     }  
-                                        
-      })
+                                      
+      }))
   })
   
   # Probability Reactive
