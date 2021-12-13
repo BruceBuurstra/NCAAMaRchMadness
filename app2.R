@@ -96,6 +96,7 @@ ui <- fluidPage(
                                       min = 1985,
                                       max = 2021,
                                       value = c(1985, 2021),
+                                      sep = "",
                                       width = "220px"),
                           hr(),
                         ),
@@ -230,6 +231,7 @@ ui <- fluidPage(
                                                  min = 1985,
                                                  max = 2021,
                                                  value = c(1985, 2021),
+                                                 sep = "",
                                                  width = "220px"),
                                      hr(),
                                    ),
@@ -269,6 +271,7 @@ ui <- fluidPage(
                                                  min = 1985,
                                                  max = 2021,
                                                  value = c(1985, 2021),
+                                                 sep = "",
                                                  width = "220px"),
                                      hr(),
                                    ),
@@ -294,12 +297,12 @@ ui <- fluidPage(
                                      
                                      titlePanel("Desired Matchup"),
                                      fluidRow(column(8,
-                                                     selectInput(inputId = "seed1_4",
+                                                     selectInput(inputId = "seed1_3",
                                                                  label = "Team Seed:",
                                                                  choices = c(1:16),
                                                                  selected = 1),
                                                      hr(),
-                                                     selectInput(inputId = "seed2_4", 
+                                                     selectInput(inputId = "seed2_3", 
                                                                  label = "Opponent Seed:",
                                                                  choices = c(1:16), 
                                                                  selected = 1)
@@ -317,6 +320,7 @@ ui <- fluidPage(
                                                  min = 1985,
                                                  max = 2021,
                                                  value = c(1985, 2021),
+                                                 sep = "",
                                                  width = "220px"),
                                      hr(),
                                    ),
@@ -329,7 +333,7 @@ ui <- fluidPage(
                                      fluidRow((tableOutput(outputId = "seedsRoundTable"))),
                                      hr(),
                                      br(),
-                                     fluidRow((plotOutput(outputId = "seedsSpreadHist2"))),
+                                     fluidRow((plotOutput(outputId = "seedsRoundSpreadHist"))),
                                      hr()
                                    )
                                  )
@@ -342,12 +346,12 @@ ui <- fluidPage(
                         sidebarPanel(
                           titlePanel("Desired Matchup"),
                           fluidRow(column(8,
-                                          selectInput(inputId = "seed1_8",
+                                          selectInput(inputId = "seed1_4",
                                                       label = "Team Seed:",
                                                       choices = c(1:16),
                                                       selected = 1),
                                           hr(),
-                                          selectInput(inputId = "seed2_8", 
+                                          selectInput(inputId = "seed2_4", 
                                                       label = "Opponent Seed:",
                                                       choices = c(1:16), 
                                                       selected = 1)
@@ -386,6 +390,7 @@ ui <- fluidPage(
                                                       min = 1985,
                                                       max = 2021,
                                                       value = c(1985, 2021),
+                                                      sep = "",
                                                       width = "220px"),
                                           column(8,
                                                  checkboxGroupInput(inputId = "RoundSelect4",
@@ -422,7 +427,7 @@ ui <- fluidPage(
 # Define server
 server <- function(input, output, session) {
   
-  #Data Table
+  #Main Matchup Finder Data Table
   
   output$matchups <- renderTable({
     if (input$seed1 == input$seed2)
@@ -450,9 +455,13 @@ server <- function(input, output, session) {
   }
   )
   
+  #Matchup Finder Data Table
+  
   output$bigdata <- renderDataTable(Big_Dance_Seeds%>%
                                       filter(`low seed` %in% input$seed1 & `high seed` %in% input$seed2 | `high seed` %in% input$seed1 & `low seed` %in% input$seed2, Year >= input$year[1], Year <= input$year[2]) %>% 
                                       select(Year, `round name`, `high seed`, `high seed team`, `low seed`, `low seed team`, `high seed score`, `low seed score`))
+  
+  #Main Matchup Finder Text
   
   output$text <- renderText({
     if (input$seed1 == input$seed2){
@@ -469,11 +478,8 @@ server <- function(input, output, session) {
     }
   })
   
-  output$win_names <- renderText({
-    paste("The ", case_when(as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed1),
-                            as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed2)), " seed has beaten the ", case_when(as.numeric(input$seed1) > as.numeric(input$seed2) ~ as.numeric(input$seed1),
-                                                                                                                                             as.numeric(input$seed1) < as.numeric(input$seed2) ~ as.numeric(input$seed2)), " Seed Wins")
-  })
+  #Spread by Seeds Table
+  
   output$seedsTable <- renderTable({
     if (input$seed1_2 == input$seed2_2){
       Big_Dance_Seeds %>%
@@ -498,6 +504,8 @@ server <- function(input, output, session) {
     }
   })
   
+  #Spread by Seeds Histogram
+  
   output$seedsSpreadHist <- renderPlot({
     if (input$seed1_2 == input$seed2_2){
       Big_Dance_Seeds %>%
@@ -512,6 +520,12 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
     else{
+      req(nrow(Big_Dance_Seeds %>%
+                 filter(`low seed` %in% input$seed1_2 & `high seed` %in% input$seed2_2 | 
+                          `high seed` %in% input$seed1_2 & `low seed` %in% input$seed2_2,
+                        Year >= input$year_2[1],
+                        Year <= input$year_2[2])%>%
+                 mutate(Difference = abs(`high seed score` - `low seed score`))) > 0)
       win_names = c(`0` = paste(case_when(as.numeric(input$seed1_2) > as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
                                           as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed2_2)), " Seed Wins"), 
                     `1` = paste(case_when(as.numeric(input$seed1_2) < as.numeric(input$seed2_2) ~ as.numeric(input$seed1_2),
@@ -530,16 +544,17 @@ server <- function(input, output, session) {
     }
   })
 
+  #Spread Comparisons by Seeds by Round Table
   
   output$seedsRoundTable <- renderTable({
-    req(input$seed1_4)
-    req(input$seed2_4)
+    req(input$seed1_3)
+    req(input$seed2_3)
     req(input$round)
-    if (input$seed1_4 == input$seed2_4){
+    if (input$seed1_3 == input$seed2_3){
       Big_Dance_Seeds %>%
                       filter(
-                        `low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
-                          `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+                        `low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
+                          `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
                         Year >= input$year_4[1],
                         Year <= input$year_4[2],
                         `round name` == input$round)%>%
@@ -549,8 +564,8 @@ server <- function(input, output, session) {
     else{
       Big_Dance_Seeds %>%
         rename("High Seed Win" = `high seed win`)%>%
-        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
-                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+        filter(`low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
+                 `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
                Year >= input$year_4[1],
                Year <= input$year_4[2],
                `round name` == input$round)%>%
@@ -560,11 +575,13 @@ server <- function(input, output, session) {
     }
   })
   
-  output$seedsSpreadHist2 <- renderPlot({
-    if (input$seed1_4 == input$seed2_4){
+  #Spread Comparisons by Seeds by Round Histogram
+  
+  output$seedsRoundSpreadHist <- renderPlot({
+    if (input$seed1_3 == input$seed2_3){
       Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
-                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+        filter(`low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
+                 `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
                Year >= input$year_4[1],
                Year <= input$year_4[2],
                `round name` == input$round)%>%
@@ -575,13 +592,20 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
     else{
-      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ as.numeric(input$seed1_4),
-                                          as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ as.numeric(input$seed2_4)), " Seed Wins"), 
-                    `1` = paste(case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ as.numeric(input$seed1_4),
-                                          as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ as.numeric(input$seed2_4)), " Seed Wins"))
+      req(nrow(Big_Dance_Seeds %>%
+                 filter(`low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
+                          `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
+                        Year >= input$year_4[1],
+                        Year <= input$year_4[2],
+                        `round name` == input$round)%>%
+                 mutate(Difference = abs(`high seed score` - `low seed score`))) > 0)
+      win_names = c(`0` = paste(case_when(as.numeric(input$seed1_3) > as.numeric(input$seed2_3) ~ as.numeric(input$seed1_3),
+                                          as.numeric(input$seed1_3) < as.numeric(input$seed2_3) ~ as.numeric(input$seed2_3)), " Seed Wins"), 
+                    `1` = paste(case_when(as.numeric(input$seed1_3) < as.numeric(input$seed2_3) ~ as.numeric(input$seed1_3),
+                                          as.numeric(input$seed1_3) > as.numeric(input$seed2_3) ~ as.numeric(input$seed2_3)), " Seed Wins"))
       Big_Dance_Seeds %>%
-        filter(`low seed` %in% input$seed1_4 & `high seed` %in% input$seed2_4 | 
-                 `high seed` %in% input$seed1_4 & `low seed` %in% input$seed2_4,
+        filter(`low seed` %in% input$seed1_3 & `high seed` %in% input$seed2_3 | 
+                 `high seed` %in% input$seed1_3 & `low seed` %in% input$seed2_3,
                Year >= input$year_4[1],
                Year <= input$year_4[2],
                `round name` == input$round)%>%
@@ -593,6 +617,8 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
   })
+  
+  #Conferences Table
   
   output$conferencesTable <- renderTable({req(input$conference1)
     req(input$conference2)
@@ -638,6 +664,8 @@ server <- function(input, output, session) {
    }
    )
     
+  #Conferences Text
+  
   output$conferenceText <- renderText({
     req(input$conference1)
     req(input$conference2)
@@ -656,6 +684,8 @@ server <- function(input, output, session) {
                                                                                                                        summarise(`win %` = round(mean(`Conf Win`) * 100,2))), "% of the time  between ", input$year_3[1], " and ", input$year_3[2], sep = "")
     }
   })
+  
+  #Conference Spread Histograms
   
   output$conferenceSpreadHist <- renderPlot({
     req(input$conference1)
@@ -682,6 +712,21 @@ server <- function(input, output, session) {
         theme(text = element_text(size=16))
     }
     else{
+      req(nrow(conferences%>%
+                 filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
+                          `High Seed Conference` == input$conference1 & `Low Seed Conference` == input$conference2,
+                        Year >= input$year_3[1],
+                        Year <= input$year_3[2])%>%
+                 mutate("Team Conference Win" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ 1L,
+                                                          `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ 1L,
+                                                          TRUE ~ 0L),
+                        "Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `winning score`,
+                                                 `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `winning score`,
+                                                 TRUE ~ `losing score`),
+                        "Opp Conf Score" = case_when(`High Seed Conference` == input$conference1 & `high seed win` == 1 ~ `losing score`,
+                                                     `Low Seed Conference` == input$conference1 & `high seed win` == 0 ~ `losing score`,
+                                                     TRUE ~ `winning score`))%>%
+                 mutate(Difference = abs(`high seed score` - `low seed score`))) > 0)
       win_names = c(`0` = "Opponent Conference Win", `1` = "Team Conference Win")
       conferences%>%
         filter(`High Seed Conference` == input$conference2 & `Low Seed Conference` == input$conference1 |
@@ -706,7 +751,8 @@ server <- function(input, output, session) {
     }
   })
   
-  #tables for team comparisons
+  #Team History Tables
+  
   output$SchoolHistory1 <- renderTable({req(input$SchoolSelectA[1])
     req(input$RoundSelect2)
     Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[1] | `low seed team` == input$SchoolSelectA[1], `round name` %in% input$RoundSelect2) %>% 
@@ -745,6 +791,7 @@ server <- function(input, output, session) {
       select(Team, `Tournament Appearances`, `Games Played`, Record, `Championships Won`, `Championships Made`, `Final Fours`,  `Elite 8s`, `Sweet 16s`, `Average Points Scored`, `Average Points Allowed`) %>% 
       gt()
   })
+  
   output$SchoolHistory2 <- renderTable({req(input$SchoolSelectA[2])
     req(input$RoundSelect2)
     Big_Dance_Seeds %>% filter(`high seed team` == input$SchoolSelectA[2] | `low seed team` == input$SchoolSelectA[2], `round name` %in% input$RoundSelect2) %>% 
@@ -785,7 +832,7 @@ server <- function(input, output, session) {
       tab_header(title = md("Historical Record"))
   })
   
-  #tables for conference comparisons
+  #Conference History Tables
   
   output$conferenceHistory1 <- renderTable({req(input$conferenceSelect[1])
     req(input$RoundSelect3)
@@ -869,6 +916,8 @@ server <- function(input, output, session) {
       gt()
   })
   
+  #Conferences Text
+  
   output$helpConferenceText <- renderText({
     "Note: The Conferences do not reflect Teams that have changed Conferences in the past and only represent Teams and their current Conferences."
   })
@@ -878,6 +927,7 @@ server <- function(input, output, session) {
   })
   
   #Seed History Table
+  
   output$seedHistory <- renderTable({
     req(input$seed_2)
     req(input$RoundSelect)
@@ -917,6 +967,8 @@ server <- function(input, output, session) {
           gt()
   })
   
+  #Seed Text
+  
   output$seedsText <- renderText({
     "Note: This data includes all 36 years for which there has been a March Madness tournament from 1985 to 2021"
   })
@@ -933,6 +985,8 @@ server <- function(input, output, session) {
       summarise(Upset = sum(Upset))%>%
       summarise(Min = min(Upset), `1Q` = summary(Upset)[["1st Qu."]] , Median = median(Upset),`3Q` = summary(Upset)[["3rd Qu."]], Median = median(Upset), Max = max(Upset), Mean = mean(Upset), StandDev = sd(Upset))
   })
+  
+  #Upsets Histogram
   
   output$upsetsHistogram <- renderPlot({
     req(input$RoundSelect4)
@@ -970,36 +1024,36 @@ server <- function(input, output, session) {
   # Simulator tab output
   
   output$ProbabilityShow <- renderText({
-    if(input$seed1_8 == input$seed2_8) {
+    if(input$seed1_4 == input$seed2_4) {
       "These teams are the same seed, so this will be a 50/50 matchup"
     }
     else {
-      paste("The ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
-                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8), " seed will have a ", round(Team_Probability() * 100, 2),
-            "% chance of beating the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
-                                                  as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8), " seed", sep = "")
+      paste("The ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
+                              as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4), " seed will have a ", round(Team_Probability() * 100, 2),
+            "% chance of beating the ", case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
+                                                  as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4), " seed", sep = "")
     }
   })
 
   observeEvent(input$Randomize,{
     Number <- runif(1, min = 0, max = 1)
     output$RunRandom <- renderText("Simulating...")
-    delay(500, output$RunRandom <- renderText({ if(input$seed1_8 == input$seed2_8) {
+    delay(500, output$RunRandom <- renderText({ if(input$seed1_4 == input$seed2_4) {
       "These are the same seed, we can't really help you here"
       }
       else if(Number < as.numeric(Team_Probability())) {
-      paste("The ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
-                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
-                              TRUE ~ input$seed1_8), " seed wins against the ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
-                                                                                              as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
-                                                                                              TRUE ~ input$seed2_8), " seed")
+      paste("The ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
+                              as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
+                              TRUE ~ input$seed1_4), " seed wins against the ", case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
+                                                                                              as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4,
+                                                                                              TRUE ~ input$seed2_4), " seed")
     } 
     else {
-      paste("The ", case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
-                              as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
-                              TRUE ~ input$seed2_8), " seed will win against the ", case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
-                                                                                              as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
-                                                                                              TRUE ~ input$seed1_8), " seed")
+      paste("The ", case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
+                              as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4,
+                              TRUE ~ input$seed2_4), " seed will win against the ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
+                                                                                              as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
+                                                                                              TRUE ~ input$seed1_4), " seed")
     }  
                                       
       }))
@@ -1022,12 +1076,12 @@ server <- function(input, output, session) {
                                    TRUE ~ games),
              new_prob = case_when(`high seed`==`low seed` ~.5,
                                   TRUE ~ new_wins/new_games)) %>%
-      filter(`high seed` == case_when(as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed1_8,
-                                      as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed2_8,
-                                      TRUE ~ input$seed1_8),
-             `low seed` == case_when(as.numeric(input$seed1_8) > as.numeric(input$seed2_8) ~ input$seed1_8,
-                                     as.numeric(input$seed1_8) < as.numeric(input$seed2_8) ~ input$seed2_8,
-                                     TRUE ~ input$seed2_8)) %>% ungroup() %>% select(new_prob)
+      filter(`high seed` == case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
+                                      as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
+                                      TRUE ~ input$seed1_4),
+             `low seed` == case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
+                                     as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4,
+                                     TRUE ~ input$seed2_4)) %>% ungroup() %>% select(new_prob)
   })
   # Reactive to get win % between seeds
   Seed_Wins <- reactive({
