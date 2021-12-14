@@ -55,12 +55,16 @@ scratch3 <- Big_Dance_Seeds %>%
                               TRUE ~ new_wins/new_games),
          seed_diff = `low seed` - `high seed`) %>%
   select(`high seed`, `low seed`, new_prob, seed_diff)
+
 prediction <- tibble(`high seed` = rep(c(1:16), each = 16), `low seed` = rep(1:16,16)) %>% 
   filter(`high seed` <= `low seed`) %>% 
   mutate("seed_diff" = `low seed` - `high seed`,
          "new_prob" = 0.481681 + 0.027568 * seed_diff) %>% 
-  select(`high seed`, `low seed`, new_prob, seed_diff)
-
+  select(`high seed`, `low seed`, new_prob, seed_diff) %>% 
+  
+pre_join_prediction <- anti_join(prediction, scratch3, by = c("high seed", "low seed"))
+final_probability <- anti_join(prediction, scratch3, by = c("high seed", "low seed")) %>% 
+  union_all(scratch3)
 
 
 win_probs <- scratch3%>%
