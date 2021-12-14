@@ -1054,7 +1054,7 @@ server <- function(input, output, session) {
     else {
       paste("The ", case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
                               as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4,
-                              TRUE ~ input$seed2_4), " seed will win against the ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
+                              TRUE ~ input$seed2_4), " seed wins against the ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
                                                                                               as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
                                                                                               TRUE ~ input$seed1_4), " seed")
     }  
