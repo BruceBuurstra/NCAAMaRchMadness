@@ -59,8 +59,7 @@ prediction <- tibble(`high seed` = rep(c(1:16), each = 16), `low seed` = rep(1:1
   filter(`high seed` <= `low seed`) %>% 
   mutate("seed_diff" = `low seed` - `high seed`,
          "new_prob" = 0.481681 + 0.027568 * seed_diff) %>% 
-  select(`high seed`, `low seed`, new_prob, seed_diff) %>% 
-  filter(`high seed` %in% scratch3$`high seed` | `low seed` %in% scratch3$`low seed`)
+  select(`high seed`, `low seed`, new_prob, seed_diff)
 
 
 
@@ -73,7 +72,8 @@ ggplot(data = scratch3, mapping = aes(x = seed_diff, y = new_prob)) +
   stat_smooth(method = lm)
 summary(lm(scratch3$new_prob ~ scratch3$seed_diff))
 # 0.481681 + 0.027568
-tibble
+
+
               
 
 team_names <- c(Big_Dance_Seeds$`high seed team`, Big_Dance_Seeds$`low seed team`)
