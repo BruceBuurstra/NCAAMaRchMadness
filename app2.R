@@ -1066,6 +1066,13 @@ server <- function(input, output, session) {
       }))
   })
   
+  observeEvent(input$seed1_4, {
+    output$RunRandom <- renderText("")
+  })
+  
+  observeEvent(input$seed2_4, {
+    output$RunRandom <- renderText("")
+  })
   # Probability Reactive
   Team_Probability <- reactive({
     anti_join(probability_predictor, historical_probability, by = c("high seed", "low seed")) %>% 
