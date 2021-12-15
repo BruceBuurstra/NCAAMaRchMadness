@@ -15,6 +15,31 @@ Big_Dance_CSV <- read.csv("Big_Dance_CSV.csv")
 teams <- read_excel("teams.xlsx")
 
 #Clean Data
+ # Regression Model to get predicted probability of seeds who have not played each other
+probability_predictor <- tibble(`high seed` = rep(c(1:16), each = 16), `low seed` = rep(1:16,16)) %>% 
+  filter(`high seed` <= `low seed`) %>% 
+  mutate("seed_diff" = `low seed` - `high seed`,
+         "new_prob" = 0.481681 + 0.027568 * seed_diff) %>% 
+  select(`high seed`, `low seed`, new_prob, seed_diff)
+
+ # Pull the win percentage of seeds who have played each other
+historical_probability <- Big_Dance_Seeds %>%
+  na.omit()%>%
+  group_by(`high seed`, `low seed`)%>%
+  summarise(`win %` = mean(`high seed win`), wins = sum(`high seed win`), games = n()) %>%
+  select(`high seed`, `low seed`,`win %`, wins, games) %>%
+  mutate(prob = case_when(`high seed`==`low seed` ~.5,
+                          TRUE ~ `win %`),
+         new_wins = case_when(wins == 0 ~ wins +2,
+                              wins == games ~ wins +2,
+                              TRUE ~ wins), 
+         new_games = case_when(wins == 0 ~ games +4L,
+                               wins == games ~ games +4L,
+                               TRUE ~ games),
+         new_prob = case_when(`high seed`==`low seed` ~.5,
+                              TRUE ~ new_wins/new_games),
+         seed_diff = `low seed` - `high seed`) %>%
+  select(`high seed`, `low seed`, new_prob, seed_diff)
 
 Big_Dance_Seeds <- Big_Dance_CSV %>%
   rename(Seed_1 = Seed.1, Team_1 = Team.1, Score_1 = Score.1)%>%
@@ -1029,7 +1054,7 @@ server <- function(input, output, session) {
     else {
       paste("The ", case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
                               as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4,
-                              TRUE ~ input$seed2_4), " seed will win against the ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
+                              TRUE ~ input$seed2_4), " seed wins against the ", case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
                                                                                               as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
                                                                                               TRUE ~ input$seed1_4), " seed")
     }  
@@ -1039,27 +1064,14 @@ server <- function(input, output, session) {
   
   # Probability Reactive
   Team_Probability <- reactive({
-    Big_Dance_Seeds %>%
-      na.omit()%>%
-      group_by(`high seed`, `low seed`)%>%
-      summarise(`win %` = mean(`high seed win`), wins = as.numeric(sum(`high seed win`)), games = n()) %>%
-      select(`high seed`, `low seed`,`win %`, wins, games) %>%
-      mutate(prob = case_when(`high seed`==`low seed` ~.5,
-                              TRUE ~ `win %`),
-             new_wins = case_when(wins == 0 ~ wins +2,
-                                  wins == games ~ wins +2,
-                                  TRUE ~ wins), 
-             new_games = case_when(wins == 0 ~ games +4L,
-                                   wins == games ~ games +4L,
-                                   TRUE ~ games),
-             new_prob = case_when(`high seed`==`low seed` ~.5,
-                                  TRUE ~ new_wins/new_games)) %>%
+    anti_join(probability_predictor, historical_probability, by = c("high seed", "low seed")) %>% 
+      union_all(historical_probability) %>% 
       filter(`high seed` == case_when(as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed1_4,
                                       as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed2_4,
                                       TRUE ~ input$seed1_4),
              `low seed` == case_when(as.numeric(input$seed1_4) > as.numeric(input$seed2_4) ~ input$seed1_4,
                                      as.numeric(input$seed1_4) < as.numeric(input$seed2_4) ~ input$seed2_4,
-                                     TRUE ~ input$seed2_4)) %>% ungroup() %>% select(new_prob)
+                                     TRUE ~ input$seed2_4)) %>% select(new_prob)
   })
   # Reactive to get win % between seeds
   Seed_Wins <- reactive({
