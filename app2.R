@@ -198,12 +198,12 @@ ui <- fluidPage(
                       ),
                       hr(),
                       fluidRow(
-                        column(6,
+                        column(5,
                                tableOutput(outputId = "SchoolHistory1"),
                                hr(),
                                tableOutput("SchoolHistory2")
                         ),
-                        column(6,
+                        column(7,
                                tableOutput(outputId = "SchoolRoundStats1"),
                                hr(),
                                tableOutput(outputId = "SchoolRoundStats2"))
@@ -222,7 +222,7 @@ ui <- fluidPage(
                                                              onInitialize = I('function() { this.setValue(""); }'))
                                ),
                         ),
-                        column(6,
+                        column(5,
                                checkboxGroupInput(inputId = "RoundSelect3",
                                                   label = "Select Round:",
                                                   choices = unique(conferences$`round name`),
@@ -231,13 +231,14 @@ ui <- fluidPage(
                       ),
                       hr(),
                       fluidRow(
-                        column(6,
+                        column(5,
                                tableOutput(outputId = "conferenceHistory1"),
                                hr(),
                                tableOutput("conferenceHistory2"),
                         ),
-                        column(6,
+                        column(7,
                                tableOutput(outputId = "conferenceRoundStats1"),
+                               br(),
                                hr(),
                                tableOutput(outputId = "conferenceRoundStats2"))
                       ),
