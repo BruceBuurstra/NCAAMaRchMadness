@@ -923,6 +923,7 @@ server <- function(input, output, session) {
                 "Final Fours" = mean(`Final Four`) * n(),
                 "Elite 8s" = mean(`Elite 8`) * n(),
                 "Sweet 16s" = mean(`Sweet 16`) * n()) %>% 
+      select(`Tournament Appearances`, `Sweet 16s`, `Elite 8s`, `Final Fours`, `Championships Made`, `Championships Won`) %>% 
       gt()
     
   })
@@ -973,6 +974,7 @@ server <- function(input, output, session) {
                 "Final Fours" = mean(`Final Four`) * n(),
                 "Elite 8s" = mean(`Elite 8`) * n(),
                 "Sweet 16s" = mean(`Sweet 16`) * n()) %>% 
+      select(`Tournament Appearances`, `Sweet 16s`, `Elite 8s`, `Final Fours`, `Championships Made`, `Championships Won`) %>% 
       gt()
     
   })
@@ -1043,6 +1045,7 @@ server <- function(input, output, session) {
                 "Final Fours" = mean(`Final Four`) * n(),
                 "Elite 8s" = mean(`Elite 8`) * n(),
                 "Sweet 16s" = mean(`Sweet 16`) * n()) %>% 
+      select(`Sweet 16s`, `Elite 8s`, `Final Fours`, `Championships Made`, `Championships Won`) %>% 
       gt()
   })
   
